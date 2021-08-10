@@ -1,10 +1,10 @@
 # Net worth tracker
 
-Proyecto para el [curso de desarrollo ágil](https://jj.github.io/curso-tdd)
+Project for the [Agile development course](https://jj.github.io/curso-tdd)
 
-La plantilla contiene el mínimo para un proyecto, incluyendo una GitHub action 
-que comprueba la presencia de ciertos ficheros, un directorio para los
-tests, y otro para la documentación.
+The template contains the bare minimum needed to start a project, including a 
+GitHub action that checks the presence of certain files, a folder for tests and 
+another for documentation.
 
 Personalizable web app to automate the collection of updated information from 
 different sources (bank accounts, pensions, funds, stock, crypto, real state, etc) 
@@ -20,7 +20,7 @@ to generate estimates of net worth over time.
 
 # Authors
 
-| Github Nick                         | Name           |
-| ----------------------------------- | -------------- |
-| [mhered](https://github.com/mhered) | Manuel Heredia |
-|                                     |                |
+| Github Nick                                 | Name                  |
+| ------------------------------------------- | --------------------- |
+| [mhered](https://github.com/mhered)         | Manuel Heredia        |
+| [other-mhered] (https://github.com/mhered)  | not Manuel Heredia    |
