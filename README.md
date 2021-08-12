@@ -12,11 +12,11 @@ to generate estimates of net worth over time.
 
 
 # Release history
-| Release | Description   | Date       |
-| ------- | ------------- | ---------- |
-| v0.0.1  | First Release | 10.08.2021 |
-|         |               |            |
-|         |               |            |
+| Release | Description        | Date       |
+| ------- | ------------------ | ---------- |
+| v0.0.1  | First Release      | 10.08.2021 |
+| v1.0.1  | Personas defined   | 12.08.2021 |
+|         |                    |            |
 
 # Authors
 
