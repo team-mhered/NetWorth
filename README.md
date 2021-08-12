@@ -23,4 +23,4 @@ to generate estimates of net worth over time.
 | Github Nick                                 | Name                  |
 | ------------------------------------------- | --------------------- |
 | [mhered](https://github.com/mhered)         | Manuel Heredia        |
-| [other-mhered] (https://github.com/mhered)  | not Manuel Heredia    |
+| [other-mhered](https://github.com/mhered)  | not Manuel Heredia    |
