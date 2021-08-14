@@ -9,7 +9,7 @@ assignees: ''
 
 ## High level description
 
-* As Wilfred we need **feature** in order to **describe problem solved**
+* As _Wilfred_ we need **feature** in order to **describe problem solved**
 
 ## Given/And/Then/When
 
