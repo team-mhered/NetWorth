@@ -25,9 +25,12 @@ class Portfolio:
         self.currency = currency
         self.item_list = []  # creates a new empty list of Items
 
-    def add_item(self, Item):
-        self.item_list.append(Item)
-        Item.portfolio = self  # to access properties of parent portfolio
+    def add_item(self, type: str, subtype: str, currency: str,
+                 name: str, description: str):
+        new_item = Item(type=type, subtype=subtype, currency=currency,
+                        name=name, description=description, portfolio=self)
+        self.item_list.append(new_item)
+        return new_item
 
     def display(self):
         l = []
@@ -53,14 +56,14 @@ class Item:
     """Item: Asset or Liability"""
 
     def __init__(self, type: str, subtype: str, currency: str,
-                 name: str, description: str):
+                 name: str, description: str, portfolio: Portfolio):
         self.id = UniqueID()
         self.name = name
         self.description = description
         self.currency = currency
         self.type = type
         self.subtype = subtype
-        self.portfolio = None  # initialize Item as orphan
+        self.portfolio = portfolio  # initialize Item in portfolio
         self.history = []  # creates a new empty list of HistoryPt
 
     def update_history(self, when: date, units_owned: float,
@@ -111,9 +114,9 @@ class HistoryPoint:
         l.append('\n    Date: ' + self.when.isoformat())  # date
         l.append('\n    Units Owned: ' + f'{self.units_owned:.2f}')  # units
         l.append('\n    Cost: ' + f'{self.cost_of_purchase:.2f}'
-                 + ' ' + self.item.currency)  # cost
+                 + ' ' + self.item.portfolio.currency)  # cost
         l.append('\n    Value: ' + f'{self.value_of_asset:.2f}'
-                 + ' ' + self.item.currency)  # value
+                 + ' ' + self.item.portfolio.currency)  # value
         s = ''.join(l)
         return s
 
@@ -121,26 +124,45 @@ class HistoryPoint:
 def main():
     """ Test creating a portfolio with a couple of assets """
 
-    logging.basicConfig(filename='networth.log', filemode='w',
-                        format='%(asctime)s:%(levelname)s:%(message)s',
-                        datefmt='%d/%m/%Y %I:%M:%S%p', level=logging.DEBUG)
-    logging.info('\n-------RUN STARTS-------')
-    logging.info('Create a couple of Items')
+    # setup logging service
+    # ::ENHANCEMENT:: need to move this config info to an .env file
+    CONFIGFILE = './networth.log'
+    LOGLEVEL = logging.DEBUG
+    logging.basicConfig(filename=CONFIGFILE, filemode='w',
+                        format='%(asctime)s::%(levelname)s::%(message)s',
+                        datefmt='%Y.%m.%d %I:%M:%S%p', level=LOGLEVEL)
 
-    fund1 = Item(type='asset', subtype='fund', currency='EUR',
-                 name='Fondo NARANJA 50/40',
-                 description='Investment fund in ING Direct')
-    crypto1 = Item(type='asset', subtype='currency', currency='EUR',
-                   name='Bitcoin', description='Bitcoin in Revolut')
+    logging.info('\n-------RUN STARTS-------')
+    logging.info('Create a Portfolio')
+    portfolio1 = Portfolio(name="My First Portfolio", currency="USD",
+                           description="Test portfolio")
+    logging.debug("Print 'portfolio1' with empty list of items:\n" + portfolio1.display())
+
+    logging.info("Add 'fund1' Item")
+
+    fund1 = portfolio1.add_item(type='asset', subtype='fund', currency='EUR',
+                                name='Fondo NARANJA 50/40',
+                                description='Investment fund in ING Direct')
 
     logging.debug("Print 'fund1' without history:\n\n" + fund1.display())
-    logging.debug("Print 'crypto1' without history:\n\n" + crypto1.display())
 
-    logging.info('Update History of Items')
+    logging.info("Update History of 'fund1' Item")
 
     fund1.update_history(when=date(2021, 8, 16),
                          units_owned=1, cost_of_purchase=100000,
                          value_of_asset=107963.89)
+    logging.debug("Print 'fund1' with 1 history point:\n\n" + fund1.display())
+
+    logging.debug("Print 'portfolio1' with item 'fund1':\n" + portfolio1.display())
+
+    logging.info("Add 'crypto1' Item")
+
+    crypto1 = portfolio1.add_item(type='asset', subtype='currency', currency='BTC',
+                                  name='Bitcoin', description='Bitcoin in Revolut')
+
+    logging.debug("Print 'crypto1' without history:\n\n" + crypto1.display())
+
+    logging.info("Update History of 'crypto1' Item")
 
     crypto1.update_history(when=date(2021, 5, 12),
                            units_owned=1.1, cost_of_purchase=50083.18,
@@ -154,23 +176,12 @@ def main():
                            units_owned=1.4, cost_of_purchase=59407.83,
                            value_of_asset=55091.67)
 
-    logging.debug("Print 'fund1' with 1 history point:\n\n" + fund1.display())
-    logging.debug("Print 'crypto1' with 1 history point:\n\n" + crypto1.display())
+    logging.debug("Print 'crypto1' with 3 history points:\n\n" + crypto1.display())
 
-    logging.info('Create a Portfolio')
-
-    portfolio1 = Portfolio(name="My First Portfolio", currency="USD",
-                           description="Test portfolio")
-
-    logging.debug("Print 'portfolio1' without items:\n" + portfolio1.display())
-    portfolio1.add_item(fund1)
-    logging.debug("Print 'portfolio1' with item 'fund1':\n" + portfolio1.display())
-    portfolio1.add_item(crypto1)
-
-    print("Print 'portfolio1' with item 'crypto1':\n", portfolio1.display())
+    print("Print 'portfolio1' with 2 items with history:\n", portfolio1.display())
 
     logging.info('Success')
-    logging.info('--------RUN ENDS--------\n')
+    logging.info('\n--------RUN ENDS--------\n')
 
 
 if __name__ == "__main__":
