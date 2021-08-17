@@ -5,7 +5,7 @@ from datetime import date
 
 
 # cfr. Classes https://docs.python.org/3/tutorial/classes.html
-# cfr. logging https://www.ionos.es/digitalguide/paginas-web/desarrollo-web/logging-de-python/
+# cfr. logging https://docs.python.org/3/howto/logging.html
 
 
 def UniqueID():
