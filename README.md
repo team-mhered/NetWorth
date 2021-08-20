@@ -11,16 +11,14 @@ from different sources (bank accounts, pensions, funds, stock, crypto, real stat
 to generate estimates of net worth over time.
 
 MVP solution ("solución") chosen will be the modules (classes and methods) required to manage a 
-portfolio of assets and a basic dashboard.
+portfolio of assets and a basic dashboard. See details of the proposed roadmap in the [Roadmap Wiki page](https://github.com/team-mhered/NetWorth/wiki/Roadmap)
 
-# Services
+# Dependencies
 * [logging](https://docs.python.org/3/howto/logging.html): for logging
 * [uuid](https://docs.python.org/3/library/uuid.html): for unique identification of items
+* [invoke](http://www.pyinvoke.org/): task runner
 
-Under consideration:
-* [remoteconfig](https://pypi.org/project/remoteconfig/): for remote configuration
-* [forex-python](https://pypi.org/project/forex-python/): for exchange rates
-* [yfinance](https://pypi.org/project/yfinance/): for stock information
+For details on other dependencies currently under consideration check the [Dependencies Wiki page](https://github.com/team-mhered/NetWorth/wiki/Dependencies)
 
 # Release history
 | Release | Description                      | Date       |
@@ -30,6 +28,8 @@ Under consideration:
 | v2.0.1  | [Kanban](https://github.com/team-mhered/dummy-project/projects/1) and [Wiki](https://github.com/team-mhered/dummy-project/wiki) added. | 16.08.2021    |
 | v3.0.1  | User Stories. Close #9.          | 17.08.2021 |
 | v4.0.2  | Services.                        | 18.08.2021 |
+| v9.0.1  | Roadmap, Exceptions, Task runner.  | 20.08.2021 |
+
 
 # Authors
 
