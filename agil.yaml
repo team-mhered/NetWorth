@@ -6,7 +6,10 @@ excepciones:
 
 taskfile:
     - tasks.py
-    
+
+linter:
+    - pylint
+
 personas:
     - Wilfred Lopez
     - Bea Duran
