@@ -63,7 +63,13 @@ class Item:
         self.currency = currency
         self.type = type
         self.subtype = subtype
-        self.portfolio = portfolio  # initialize Item in portfolio
+
+        try:
+            self.portfolio = portfolio  # initialize Item in portfolio
+        except:
+            # ::bug:: this should alert against orphan Items but does not work as intended
+            logging.error('Attempting to create an orphan Item.')
+
         self.history = []  # creates a new empty list of HistoryPt
 
     def update_history(self, when: date, units_owned: float,
@@ -125,7 +131,7 @@ def main():
     """ Test creating a portfolio with a couple of assets """
 
     # setup logging service
-    # ::ENHANCEMENT:: need to move this config info to an .env file
+    # ::ENHANCEMENT:: should move this config info to an .env file
     CONFIGFILE = './networth.log'
     LOGLEVEL = logging.DEBUG
     logging.basicConfig(filename=CONFIGFILE, filemode='w',
@@ -182,6 +188,10 @@ def main():
 
     logging.info('Success')
     logging.info('\n--------RUN ENDS--------\n')
+
+    # this should fail
+    crypto1 = Item(type='asset', subtype='stock', currency='USD',
+                   name='Amazon', description='Amazon stock in Revolut', portfolio=None)
 
 
 if __name__ == "__main__":
