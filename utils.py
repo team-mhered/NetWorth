@@ -2,15 +2,17 @@
 
 """ Basic Classes Portfolio, Item, HistoryPoint and methods"""
 
-import logging
-import uuid
+import matplotlib.pyplot as plt
 from datetime import date
-import bisect
-from forex_python.converter import CurrencyRates
 from forex_python.bitcoin import BtcConverter
+from forex_python.converter import CurrencyRates
+import logging
+import bisect
 
 # cfr. Classes https://docs.python.org/3/tutorial/classes.html
 # cfr. logging https://docs.python.org/3/howto/logging.html
+
+import uuid
 
 
 def generate_unique_id():
@@ -77,6 +79,19 @@ def get_exchange_rate(given_date: date, from_currency: str, to_currency: str):
     return rate
 
 
+def plot_piechart(dict):
+    """ Plot piechart with the slices ordered counter-clockwise. """
+
+    labels = dict.keys()
+    sizes = dict.values()
+    fig1, ax1 = plt.subplots()
+    ax1.pie(sizes, labels=labels, autopct='%1.1f%%',
+            shadow=False, startangle=90)
+    ax1.axis('equal')  # Equal aspect ratio so pie is drawn as a circle.
+
+    plt.show()
+
+
 class Portfolio:
     """ Portfolio: List of Items (Assets and Liabilities) """
 
@@ -106,10 +121,33 @@ class Portfolio:
         for item in self.item_list:
             (closest_date, closest_balance) = item.get_item_balance(
                 self.currency, given_date)
-            # may be good to return closest_date to give transparency
+            # would be good to return closest_date to give transparency
             portfolio_balance += closest_balance
 
         return portfolio_balance
+
+    def get_portfolio_piechart(self, given_date: date):
+        """ Get Portfolio piechart by subcategories on a given date in the Portfolio currency"""
+
+        piechart = {'portfolio_balance': 0}
+        for item in self.item_list:
+            (closest_date, closest_balance) = item.get_item_balance(
+                self.currency, given_date)
+            # would be good to return closest_date to give transparency
+            piechart['portfolio_balance'] += closest_balance
+            if item.subcategory in piechart:
+                piechart[item.subcategory] += closest_balance
+            else:
+                piechart[item.subcategory] = closest_balance
+        balance = piechart.pop('portfolio_balance')
+        for key, value in piechart.items():
+            piechart[key] = 100 * value/balance
+        return piechart
+
+    def get_portfolio_currency(self):
+        """ Get currency of a Portfolio"""
+
+        return self.currency
 
     def display(self):
         """ Display Portfolio(text)"""
@@ -206,8 +244,15 @@ class Item:
         msgs.append('\n  Currency: ' + self.currency)
         msgs.append('\n  Name: ' + self.name)
         msgs.append('\n  Description: ' + self.description)
-        msgs.append('\n  HISTORY:')
-        msgs.append('\n  --------')
+        msgs.append('\n  HISTORY')
+        curr_port = self.portfolio.get_portfolio_currency()
+        curr_item = self.currency
+
+        msgs.append(f"""
+        _________________________________________________________________
+        |     Date      |  Units Owned  |   Cost ({curr_port})  |  Value ({curr_item})  |
+        -----------------------------------------------------------------""")
+
         if bool(self.history):
             for hist_pt in self.history:
                 msgs.append(hist_pt.display())
@@ -228,27 +273,22 @@ class HistoryPoint:
         self.value_of_asset = value_of_asset
         self.item = None  # initializes HistoryPoint as orphan
 
-    def get_portfolio_currency(self):
-        """ Obtain currency of parent portfolio"""
-        try:
-            currency = self.item.portfolio.currency
-        except Exception as ex:
-            currency = None
-            logging.warning(ex)
-        return currency
-
     def display(self):
         """ Display HistoryPoint(text)"""
 
         msgs = []
-        msgs.append('\n    HISTORY POINT')
-        msgs.append('\n    -------------')
-        msgs.append('\n    Date: ' + self.when.isoformat())  # date
-        msgs.append('\n    Units Owned: ' + f'{self.units_owned:.2f}')  # units
-        msgs.append('\n    Cost: ' + f'{self.cost_of_purchase:.2f}'
-                    + ' ' + self.get_portfolio_currency())  # cost
-        msgs.append('\n    Value: ' + f'{self.value_of_asset:.2f}'
-                    + ' ' + self.get_portfolio_currency())  # value
+        msgs.append("\n        |")
+        msgs.append("{0:^15}".format(
+            self.when.isoformat())+'|')  # date
+        msgs.append("{0:^15}".format(
+            f'{self.units_owned:.2f}')+'|')  # units
+        msgs.append("{0:^15}".format(
+            f'{self.cost_of_purchase:.2f}')+'|')  # cost
+        msgs.append("{0:^15}".format(
+            f'{self.value_of_asset:.2f}')+'|')  # value
+        msgs.append("""
+        -----------------------------------------------------------------""")
+
         msg = ''.join(msgs)
         return msg
 
