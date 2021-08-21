@@ -10,7 +10,7 @@ from invoke import task, call
 # Example 1
 # Usage: $invoke linter
 from pylint import epylint as lint  # v1
-from pylint.lint import Run  # v2
+# from pylint.lint import Run  # v2
 
 
 @task(name="linter")
