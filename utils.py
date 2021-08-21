@@ -2,7 +2,6 @@
 
 """ Basic Classes Portfolio, Item, HistoryPoint and methods"""
 
-
 import logging
 import uuid
 from datetime import date
@@ -38,16 +37,18 @@ def get_exchange_rate(given_date: date, from_currency: str, to_currency: str):
                               [from_currency, to_currency]
                               if curr not in supported_all}
         if bool(curr_not_supported):
-            logging.warning('%s currency not supported', str(curr_not_supported))
+            logging.warning('%s currency not supported',
+                            str(curr_not_supported))
         elif all(curr in supported_currencies
                  for curr in [from_currency, to_currency]):
             # all currencies are forex
             # if not bool(c): # initialize only if needed
-            c = CurrencyRates()
+            init_forex = CurrencyRates()
             if given_date == today:
-                rate = c.get_rate(from_currency, to_currency)
+                rate = init_forex.get_rate(from_currency, to_currency)
             else:
-                rate = c.get_rate(from_currency, to_currency, given_date)
+                rate = init_forex.get_rate(from_currency, to_currency,
+                                           given_date)
         else:
             # at least one of the rates is BTC
             # if both rates are BTC -> return 1
@@ -56,21 +57,23 @@ def get_exchange_rate(given_date: date, from_currency: str, to_currency: str):
             else:
                 # one of the rates is BTC
                 # if not bool(b): # initialize only if needed
-                b = BtcConverter()  # force_decimal=True to get Decimal rates
+                init_crypto = BtcConverter()  # force_decimal=True for decimal rate
                 if from_currency == 'BTC':
                     if given_date == today:
-                        rate = b.get_latest_price(to_currency)
+                        rate = init_crypto.get_latest_price(to_currency)
                     else:
                         # given_date < today
-                        rate = b.get_previous_price(to_currency, given_date)
+                        rate = init_crypto.get_previous_price(to_currency,
+                                                              given_date)
                 elif to_currency == 'BTC':
                     if given_date == today:
-                        rate = 1/b.get_latest_price(from_currency)
+                        rate = 1/init_crypto.get_latest_price(from_currency)
                     else:
                         # given_date < today
-                        rate = 1/b.get_previous_price(from_currency, given_date)
+                        rate = 1/init_crypto.get_previous_price(from_currency,
+                                                                given_date)
                 else:
-                    logging_warning("get_exchange_rate failed unexpectedly")
+                    logging.warning("get_exchange_rate failed unexpectedly")
     return rate
 
 
@@ -90,8 +93,9 @@ class Portfolio:
                  name: str, description: str):
         """ Add Item to Portfolio """
 
-        new_item = Item(category=category, subcategory=subcategory, currency=currency,
-                        name=name, description=description, portfolio=self)
+        new_item = Item(category=category, subcategory=subcategory,
+                        currency=currency, name=name,
+                        description=description, portfolio=self)
         self.item_list.append(new_item)
         return new_item
 
@@ -100,8 +104,9 @@ class Portfolio:
 
         portfolio_balance = 0
         for item in self.item_list:
-            (closest_date, closest_balance) = item.get_item_balance(self.currency, given_date)
-            # may need to use closest_date to give transparency
+            (closest_date, closest_balance) = item.get_item_balance(
+                self.currency, given_date)
+            # may be good to return closest_date to give transparency
             portfolio_balance += closest_balance
 
         return portfolio_balance
@@ -181,8 +186,9 @@ class Item:
             closest_date = closest_match[0]
             closest_balance = closest_match[1] * exchange_rate
         else:  # empty list
-            logging.warning("get_item_balance() returns 0 for Item with empty History:\n %s ('%s')",
-                            str(self.unique_id), self.name)
+            logging.warning(
+                "get_item_balance() returns 0 for Item with empty History: %s ('%s')",
+                str(self.unique_id), self.name)
             closest_date = given_date
             closest_balance = 0
 

@@ -2,7 +2,7 @@
 
 """ Crude tests for get_portfolio_balance()"""
 
-from utils import Portfolio, Item  # HistoryPoint, generate_unique_id
+from utils import Portfolio  # , Item, HistoryPoint, generate_unique_id
 import logging
 from datetime import date
 
@@ -27,8 +27,8 @@ def main():
 
     logging.info("Add 'fund1' Item")
 
-    fund1 = portfolio1.add_item(category='asset', subcategory='fund', currency='EUR',
-                                name='Fondo NARANJA 50/40',
+    fund1 = portfolio1.add_item(category='asset', subcategory='fund',
+                                currency='EUR', name='Fondo NARANJA 50/40',
                                 description='Investment fund in ING Direct')
 
     logging.debug("Print 'fund1' without history:\n\n %s", fund1.display())
@@ -46,8 +46,9 @@ def main():
 
     logging.info("Add 'crypto1' Item")
 
-    crypto1 = portfolio1.add_item(category='asset', subcategory='currency', currency='BTC',
-                                  name='Bitcoin', description='Bitcoin in Revolut')
+    crypto1 = portfolio1.add_item(category='asset', subcategory='currency',
+                                  currency='BTC', name='Bitcoin',
+                                  description='Bitcoin in Revolut')
 
     logging.debug("Print 'crypto1' without history:\n\n %s",
                   crypto1.display())

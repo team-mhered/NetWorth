@@ -2,12 +2,15 @@
 
 """ test get_exchange_rate"""
 
+from utils import get_exchange_rate
 from datetime import date, timedelta
+
+"""
+# used to ::COMPARE::
 from forex_python.converter import CurrencyRates
 from forex_python.bitcoin import BtcConverter
 import logging
-
-from utils import get_exchange_rate
+"""
 
 
 def main():
@@ -41,13 +44,17 @@ def main():
         (date.today()+timedelta(days=2), 'BTC', 'AAA'),  # today BTC a unsup b
     ]
 
+    """
+    # used to ::COMPARE::
     supported_currencies = ['USD', 'EUR', 'PLN', 'GBP']
     c = CurrencyRates()
-
+    """
     for point in points:
         print(
-            f"Exchange rate {point[1]}/{point[2]} on {point[0].isoformat()} = {str(get_exchange_rate(point[0], point[1], point[2]))}")
+            f"Exchange rate {point[1]}/{point[2]} on {point[0].isoformat()}={str(get_exchange_rate(point[0], point[1], point[2]))}")
+
         """
+        # used to ::COMPARE::
         matches = {curr for curr in [point[1], point[2]]
                    if curr in supported_currencies}
         test = all(curr in supported_currencies
