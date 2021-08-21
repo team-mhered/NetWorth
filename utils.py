@@ -2,6 +2,7 @@
 
 """ Basic Classes Portfolio, Item, HistoryPoint """
 
+
 import logging
 import uuid
 from datetime import date
@@ -17,7 +18,7 @@ def generate_unique_id():
 
 
 def get_exchange_rate(given_date: date, from_currency: str, to_currency: str):
-    """ Dummy function toGet exchange rate on given date"""
+    """ Dummy function to get exchange rate on given date"""
     return 1
 
 
@@ -37,6 +38,7 @@ class Portfolio:
                  name: str, description: str):
         """ Add Item to Portfolio """
 
+
         new_item = Item(category=category, subcategory=subcategory, currency=currency,
                         name=name, description=description, portfolio=self)
         self.item_list.append(new_item)
@@ -54,7 +56,7 @@ class Portfolio:
         return portfolio_balance
 
     def display(self):
-        """ Display Portfolio (text)"""
+        """ Display Portfolio(text)"""
 
         msgs = []
         msgs.append('----------')
@@ -81,6 +83,7 @@ class Item:
     def __init__(self, category: str, subcategory: str, currency: str,
                  name: str, description: str, portfolio: Portfolio):
         """Item constructor"""
+
         self.unique_id = generate_unique_id()
         self.name = name
         self.description = description
@@ -136,6 +139,7 @@ class Item:
 
     def display(self):
         """ Display Item(text)"""
+
         msgs = []
         msgs.append('\n  ITEM')
         msgs.append('\n  ----')
@@ -178,6 +182,7 @@ class HistoryPoint:
 
     def display(self):
         """ Display HistoryPoint(text)"""
+
         msgs = []
         msgs.append('\n    HISTORY POINT')
         msgs.append('\n    -------------')
@@ -254,6 +259,7 @@ def main():
     crypto1.update_history(when=date(2021, 8, 21),
                            units_owned=1.4, cost_of_purchase=59407.83,
                            value_of_asset=58584.21)
+
 
     logging.debug("Print 'crypto1' with 3 history points:\n\n %s",
                   crypto1.display())

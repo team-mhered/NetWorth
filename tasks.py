@@ -12,7 +12,6 @@ from invoke import task, call
 from pylint import epylint as lint  # v1
 # from pylint.lint import Run  # v2
 
-
 @task(name="linter")
 def linter(c):
     # Run(['utils.py', '--errors-only'])  # v2
