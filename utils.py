@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-""" Basic Classes Portfolio, Item, HistoryPoint """
+""" Basic Classes Portfolio, Item, HistoryPoint and methods"""
 
 
 import logging
@@ -37,7 +37,6 @@ class Portfolio:
     def add_item(self, category: str, subcategory: str, currency: str,
                  name: str, description: str):
         """ Add Item to Portfolio """
-
 
         new_item = Item(category=category, subcategory=subcategory, currency=currency,
                         name=name, description=description, portfolio=self)
@@ -259,7 +258,6 @@ def main():
     crypto1.update_history(when=date(2021, 8, 21),
                            units_owned=1.4, cost_of_purchase=59407.83,
                            value_of_asset=58584.21)
-
 
     logging.debug("Print 'crypto1' with 3 history points:\n\n %s",
                   crypto1.display())
