@@ -7,19 +7,71 @@ import logging
 import uuid
 from datetime import date
 import bisect
+from forex_python.converter import CurrencyRates
+from forex_python.bitcoin import BtcConverter
 
 # cfr. Classes https://docs.python.org/3/tutorial/classes.html
 # cfr. logging https://docs.python.org/3/howto/logging.html
 
 
 def generate_unique_id():
-    """ A wrapper function that calls an external service to generate unique IDs """
+    """ Wrapper function that generates unique IDs via an external service """
     return uuid.uuid4()
 
 
 def get_exchange_rate(given_date: date, from_currency: str, to_currency: str):
-    """ Dummy function to get exchange rate on given date"""
-    return 1
+    """
+    Get exchange rates on a given date for USD EUR PLN GBP BTC
+    """
+
+    rate = None
+    today = date.today()
+    # check date is valid
+    if given_date > today:
+        logging.warning("%s is a date in the future", given_date.isoformat())
+    else:
+        # check input currencies are valid
+        supported_currencies = ['USD', 'EUR', 'PLN', 'GBP']
+        supported_crypto = ['BTC']
+        supported_all = supported_currencies + supported_crypto
+        curr_not_supported = {curr for curr in
+                              [from_currency, to_currency]
+                              if curr not in supported_all}
+        if bool(curr_not_supported):
+            logging.warning('%s currency not supported', str(curr_not_supported))
+        elif all(curr in supported_currencies
+                 for curr in [from_currency, to_currency]):
+            # all currencies are forex
+            # if not bool(c): # initialize only if needed
+            c = CurrencyRates()
+            if given_date == today:
+                rate = c.get_rate(from_currency, to_currency)
+            else:
+                rate = c.get_rate(from_currency, to_currency, given_date)
+        else:
+            # at least one of the rates is BTC
+            # if both rates are BTC -> return 1
+            if from_currency == 'BTC' and to_currency == 'BTC':
+                rate = 1
+            else:
+                # one of the rates is BTC
+                # if not bool(b): # initialize only if needed
+                b = BtcConverter()  # force_decimal=True to get Decimal rates
+                if from_currency == 'BTC':
+                    if given_date == today:
+                        rate = b.get_latest_price(to_currency)
+                    else:
+                        # given_date < today
+                        rate = b.get_previous_price(to_currency, given_date)
+                elif to_currency == 'BTC':
+                    if given_date == today:
+                        rate = 1/b.get_latest_price(from_currency)
+                    else:
+                        # given_date < today
+                        rate = 1/b.get_previous_price(from_currency, given_date)
+                else:
+                    logging_warning("get_exchange_rate failed unexpectedly")
+    return rate
 
 
 class Portfolio:
@@ -128,13 +180,13 @@ class Item:
                                               to_currency=currency)
             closest_date = closest_match[0]
             closest_balance = closest_match[1] * exchange_rate
-            return (closest_date, closest_balance)
-
         else:  # empty list
             logging.warning("get_item_balance() returns 0 for Item with empty History:\n %s ('%s')",
                             str(self.unique_id), self.name)
+            closest_date = given_date
+            closest_balance = 0
 
-            return (0, 0)
+        return (closest_date, closest_balance)
 
     def display(self):
         """ Display Item(text)"""
