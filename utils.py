@@ -2,6 +2,7 @@
 
 """ Basic Classes Portfolio, Item, HistoryPoint and methods"""
 
+import uuid
 import matplotlib.pyplot as plt
 from datetime import date
 from forex_python.bitcoin import BtcConverter
@@ -12,7 +13,11 @@ import bisect
 # cfr. Classes https://docs.python.org/3/tutorial/classes.html
 # cfr. logging https://docs.python.org/3/howto/logging.html
 
-import uuid
+
+supported_categories = ['asset', 'liability']
+supported_subcategories = ['account', 'fund', 'stock', 'real state']
+supported_currencies = ['USD', 'EUR', 'PLN', 'GBP']
+supported_crypto = ['BTC']
 
 
 def generate_unique_id():
@@ -108,10 +113,29 @@ class Portfolio:
                  name: str, description: str):
         """ Add Item to Portfolio """
 
+        logging.info("Adding Item '%s' to Portfolio '%s'...",
+                     name, self.name)
+        reason = ""
+        if len(name) < 3:
+            reason += f"\nName '{name}' is too short. "
+        if category.lower() not in supported_categories:
+            reason += f"\nCategory '{category}' not supported. "
+        if subcategory.lower() not in supported_subcategories:
+            reason += f"\nSubcategory '{subcategory}' not supported. "
+        if len(reason) > 0:
+            logging.warning("Item '%s' not added to Portfolio '%s' due to: %s",
+                            name, self.name, reason)
+            return None
+        if currency.upper() not in supported_currencies + supported_crypto:
+            logging.warning("Auto-update of '%s' currency is not supported.",
+                            currency)
+
         new_item = Item(category=category, subcategory=subcategory,
                         currency=currency, name=name,
                         description=description, portfolio=self)
         self.item_list.append(new_item)
+        if new_item in self.item_list:
+            logging.info("Success")
         return new_item
 
     def get_portfolio_balance(self, given_date: date):
@@ -178,12 +202,14 @@ class Item:
                  name: str, description: str, portfolio: Portfolio):
         """Item constructor"""
 
-        self.unique_id = generate_unique_id()
         self.name = name
         self.description = description
-        self.currency = currency
         self.category = category
         self.subcategory = subcategory
+        self.currency = currency
+
+        self.unique_id = generate_unique_id()
+        self.deleted = False
         self.portfolio = portfolio  # initialize Item in portfolio
         self.history = []  # creates a new empty list of HistoryPt
 
