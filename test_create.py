@@ -8,7 +8,7 @@ from datetime import date
 
 
 def main():
-    """ Test creating a portfolio with a couple of assets """
+    """ Create a fixture of a basic portfolio with some assets """
 
     # setup logging service
     # ::ENHANCEMENT:: should move this config info to an .env file
@@ -20,11 +20,26 @@ def main():
 
     logging.info('\n-------RUN STARTS-------')
 
-    logging.info('Creating a Portfolio...')
-    my_portfolio = Portfolio(name="My First Portfolio", currency="EUR",
-                             description="Test portfolio")
-    if my_portfolio:
-        logging.info('Success')
+    portfolio_samples = [
+        {
+            'name': 'My First Portfolio',
+            'description': 'Test Portfolio',
+            'currency': 'EUR'
+        }
+    ]
+
+    for i, portfolio_sample in enumerate(portfolio_samples):
+        portfolio_name = 'portfolio'+str(i).zfill(2)
+        logging.info("Creating Portfolio '%s'...\n%s",
+                     portfolio_name, portfolio_sample)
+        portfolio_object = Portfolio(name=portfolio_sample['name'],
+                                     currency=portfolio_sample['currency'],
+                                     description=portfolio_sample['description'])
+        if portfolio_object:
+            logging.info('Success')
+
+    # MH this is a ñapa
+    my_portfolio = portfolio_object
 
     item_samples = [
 
