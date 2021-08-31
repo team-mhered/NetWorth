@@ -358,7 +358,7 @@ def main():
 
     logging.info("Add 'crypto1' Item")
 
-    crypto1 = portfolio1.add_item(category='asset', subcategory='currency',
+    crypto1 = portfolio1.add_item(category='asset', subcategory='account',
                                   currency='BTC', name='Bitcoin',
                                   description='Bitcoin in Revolut')
 
