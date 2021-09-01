@@ -2,16 +2,20 @@
 
 Project for the [Agile development course](https://jj.github.io/curso-tdd)
 
-The template contains the bare minimum needed to start a project, including a 
-GitHub action that checks the presence of certain files, a folder for tests and 
+The template contains the bare minimum needed to start a project, including a
+GitHub action that checks the presence of certain files, a folder for tests and
 another for documentation.
 
-NetWorth is a personalizable web app to automate the collection of updated information 
-from different sources (bank accounts, pensions, funds, stock, crypto, real state, etc) 
+NetWorth is a personalizable web app to automate the collection of updated information
+from different sources (bank accounts, pensions, funds, stock, crypto, real state, etc)
 to generate estimates of net worth over time.
 
-MVP solution ("solución") chosen will be the modules (classes and methods) required to manage a 
+MVP solution ("solución") chosen will be the modules (classes and methods) required to manage a
 portfolio of assets and a basic dashboard. See details of the proposed roadmap in the [Roadmap Wiki page](https://github.com/team-mhered/NetWorth/wiki/Roadmap)
+
+# Instructions
+* `$ invoke check` to run linter on all files in `/src/` and `/tests/` folders
+* `$ invoke tests` to run the complete test suite (simply calls `python3 -m run_tests`)
 
 # Dependencies
 * [logging](https://docs.python.org/3/howto/logging.html): for logging

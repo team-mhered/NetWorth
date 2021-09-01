@@ -24,6 +24,14 @@ def linter(c):
     print(pylint_stdout.getvalue())
     # print(pylint_stderr.getvalue())
 
+# Task 2
+# Usage: $invoke tests
+
+
+@task(name="tests")
+def tests(c):
+    c.run("python3 -m run_tests")
+
 
 # Example 1
 # Usage: $invoke webopener --url http://python.org

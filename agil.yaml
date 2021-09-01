@@ -10,6 +10,16 @@ taskfile:
 linter:
     - pylint
 
+testing:
+    runner: run_tests.py
+    framework: unittest
+
+test:
+     - tests/test_exchange.py
+     - tests/test_utils.py
+
+aserciones: unittest
+
 personas:
     - Wilfred Lopez
     - Bea Duran
