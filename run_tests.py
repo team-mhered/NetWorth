@@ -12,7 +12,7 @@ import tests.test_exchange as test_exchange
 loader = unittest.TestLoader()
 suite = unittest.TestSuite()
 
-# run test methods in order
+# run test methods in the order they are defined (it does not work, why?)
 loader.sortTestMethodsUsing = None
 
 # add tests to the test suite
