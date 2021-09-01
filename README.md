@@ -37,6 +37,7 @@ For details on other dependencies currently under consideration check the [Depen
 | v4.0.2  | Services.                        | 18.08.2021 |
 | v9.0.1  | Roadmap, Exceptions, Task runner.| 19.08.2021 |
 | v9.0.2  | Configure linter.                | 20.08.2021 |
+| v12.0.2  | Configure unittesting           | 31.08.2021 |
 
 # Authors
 
