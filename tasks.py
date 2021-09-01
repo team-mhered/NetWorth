@@ -7,17 +7,20 @@ from invoke import task, call
 # invoke tutorial: https://www.youtube.com/watch?v=fqS2TBcxoeA
 # below some dummy tasks created with invoke
 
-# Example 1
-# Usage: $invoke linter
+# Task 1
+# Usage: $invoke check
 from pylint import epylint as lint  # v1
 # from pylint.lint import Run  # v2
 
-@task(name="linter")
+
+@task(name="check")
 def linter(c):
     # Run(['utils.py', '--errors-only'])  # v2
 
     ARGS = ["-r", "n", "--rcfile=rcpylint", "return_std=True"]  # v1
-    (pylint_stdout, pylint_stderr) = lint.py_run('utils.py', ARGS)  # v1
+    (pylint_stdout, pylint_stderr) = lint.py_run('src', ARGS)  # v1
+    print(pylint_stdout.getvalue())
+    (pylint_stdout, pylint_stderr) = lint.py_run('tests', ARGS)  # v1
     print(pylint_stdout.getvalue())
     # print(pylint_stderr.getvalue())
 
