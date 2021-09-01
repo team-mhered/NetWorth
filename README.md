@@ -15,7 +15,8 @@ portfolio of assets and a basic dashboard. See details of the proposed roadmap i
 
 # Instructions
 * `$ invoke check` to run linter on all files in `/src/` and `/tests/` folders
-* `$ invoke tests` to run the complete test suite (simply calls `python3 -m run_tests`)
+* `$ invoke test` to run the complete test suite (simply calls `python3 -m run_tests`)
+
 
 # Dependencies
 * [logging](https://docs.python.org/3/howto/logging.html): for logging

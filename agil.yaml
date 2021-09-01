@@ -11,7 +11,8 @@ linter:
     - pylint
 
 testing:
-    runner: run_tests.py
+
+    runner: invoke
     framework: unittest
 
 test:

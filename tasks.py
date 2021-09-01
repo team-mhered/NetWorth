@@ -28,7 +28,7 @@ def linter(c):
 # Usage: $invoke tests
 
 
-@task(name="tests")
+@task(name="test")
 def tests(c):
     c.run("python3 -m run_tests")
 
