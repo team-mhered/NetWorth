@@ -3,12 +3,13 @@
 """ Basic Classes Portfolio, Item, HistoryPoint and methods"""
 
 import uuid
-import matplotlib.pyplot as plt
+import logging
+import bisect
 from datetime import date
 from forex_python.bitcoin import BtcConverter
 from forex_python.converter import CurrencyRates
-import logging
-import bisect
+
+import matplotlib.pyplot as plt
 
 # cfr. Classes https://docs.python.org/3/tutorial/classes.html
 # cfr. logging https://docs.python.org/3/howto/logging.html
@@ -84,11 +85,11 @@ def get_exchange_rate(given_date: date, from_currency: str, to_currency: str):
     return rate
 
 
-def plot_piechart(dict):
+def plot_piechart(piechart_dict):
     """ Plot piechart with the slices ordered counter-clockwise. """
 
-    labels = dict.keys()
-    sizes = dict.values()
+    labels = piechart_dict.keys()
+    sizes = piechart_dict.values()
     fig1, ax1 = plt.subplots()
     ax1.pie(sizes, labels=labels, autopct='%1.1f%%',
             shadow=False, startangle=90)
@@ -143,7 +144,7 @@ class Portfolio:
 
         portfolio_balance = 0
         for item in self.item_list:
-            (closest_date, closest_balance) = item.get_item_balance(
+            closest_balance, _ = item.get_item_balance(
                 self.currency, given_date)
             # would be good to return closest_date to give transparency
             portfolio_balance += closest_balance
@@ -155,7 +156,7 @@ class Portfolio:
 
         piechart = {'portfolio_balance': 0}
         for item in self.item_list:
-            (closest_date, closest_balance) = item.get_item_balance(
+            closest_balance, _ = item.get_item_balance(
                 self.currency, given_date)
             # would be good to return closest_date to give transparency
             piechart['portfolio_balance'] += closest_balance
@@ -251,15 +252,16 @@ class Item:
             closest_balance = closest_match[1] * exchange_rate
         else:  # empty list
             logging.warning(
-                "get_item_balance() returns 0 for Item with empty History: %s ('%s')",
+                "get_item_balance() returns 0 for Item"
+                " with empty History: %s ('%s')",
                 str(self.unique_id), self.name)
             closest_date = given_date
             closest_balance = 0
 
-        return (closest_date, closest_balance)
+        return closest_balance, closest_date
 
     def display(self):
-        """ Display Item(text)"""
+        """ Display Item (text)"""
 
         msgs = []
         msgs.append('\n  ITEM')
@@ -391,13 +393,6 @@ def main():
 
     logging.info('Success')
     logging.info('\n--------RUN ENDS--------\n')
-
-    """
-    # this should fail
-    crypto1 = Item(category='asset', subcategory='stock', currency='USD',
-                   name='Amazon', description='Amazon stock in Revolut',
-                   portfolio=None)
-    """
 
 
 if __name__ == "__main__":
