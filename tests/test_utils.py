@@ -159,5 +159,37 @@ class TestPortfolio(unittest.TestCase):
                          self.my_portfolio.currency, dat.isoformat(), str(piechart))
             self.assertAlmostEqual(piechart['fund'], 65.8878, places=4)
 
+
+def test_purchase(self):
+    """ Test that the purchase method works well"""
+
+    dat1 = date(2021, 8, 14)
+    balance1 = self.my_portfolio.get_portfolio_balance(given_date=dat1)
+    logging.info("Balance of 'my_portfolio' in %s on %s:\n %s",
+                 self.my_portfolio.currency, dat1.isoformat(), str(balance1))
+
+    # get item by name from item_list
+    bitcoin_account = next(
+        (item for item in self.my_portfolio.item_list
+         if item.name == "Bitcoin"), None)
+
+    dat2 = date(2021, 8, 15)
+    num_titles = .1
+    u_price = 50000
+    other_charges = .05 * num_titles * u_price
+
+    bitcoin_account.purchase(
+        purchase_date=dat2,
+        titles_purchased=num_titles,
+        unit_price=u_price,
+        fees=other_charges
+    )
+
+    balance2 = self.my_portfolio.get_portfolio_balance(given_date=dat2)
+    logging.info("Balance of 'my_portfolio' in %s on %s:\n %s",
+                 self.my_portfolio.currency, dat2.isoformat(), str(balance))
+
+    self.assertAlmostEqual(balance2, 200000, places=4)
+
     def tearDown(self):
         pass
