@@ -5,56 +5,67 @@
 """ test get_exchange_rate"""
 
 import unittest
-import logging
 
-from src.utils import get_exchange_rate
 from datetime import date, timedelta
 
 from forex_python.converter import CurrencyRates
 from forex_python.bitcoin import BtcConverter
 
+from src.utils import get_exchange_rate
 
-class Test_get_exchange_rate(unittest.TestCase):
+
+class TestExchangeRates(unittest.TestCase):
+
+    """ Class to test interface with exchange rate service """
 
     def setUp(self):
 
-        c = CurrencyRates()
-        b = BtcConverter()
-        BTC_EUR = b.get_latest_price('EUR')
-        USD_BTC = 1 / b.get_latest_price('USD')
-        USD_EUR = c.get_rate('USD', 'EUR')
+        btc_handler = BtcConverter()
+        btc_eur = btc_handler.get_latest_price('EUR')
+        usd_btc = 1 / btc_handler.get_latest_price('USD')
+
+        currency_handler = CurrencyRates()
+        usd_eur = currency_handler.get_rate('USD', 'EUR')
+
+        date_26_8 = date(2021, 8, 26)
+        date_today = date.today()
+        date_future = date.today()+timedelta(days=2)
+        date_holiday1 = date(2021, 8, 28)
+        date_holiday2 = date(2021, 8, 29)
 
         self.my_test_points = [
-            (date(2021, 8, 26), 'BTC', 'BTC', 'supported', 1),  # past BTC ab
-            (date(2021, 8, 26), 'BTC', 'EUR', 'supported', 39848.2899),  # past BTC a
-            (date(2021, 8, 26), 'USD', 'BTC', 'supported', 2.134799265262721e-05),  # past BTC b
-            (date(2021, 8, 26), 'USD', 'EUR', 'supported', 0.8498342823149485),  # past forex ab
-            (date(2021, 8, 26), 'EUR', 'USD', 'supported', 1.1767),  # past forex ab
-            (date(2021, 8, 26), 'ETH', 'USD', 'unsupported', None),  # past unsup a
-            (date(2021, 8, 26), 'EUR', 'AAA', 'unsupported', None),  # past unsup b
-            (date(2021, 8, 26), 'BTC', 'AAA', 'unsupported', None),  # past BTC a unsup b
-            (date(2021, 8, 26), 'BBB', 'CCC', 'unsupported', None),  # past unsup ab
-            (date.today(), 'BTC', 'EUR', 'supported', BTC_EUR),  # today BTC a
-            (date.today(), 'USD', 'BTC', 'supported', USD_BTC),  # today BTC b
-            (date.today(), 'USD', 'EUR', 'supported', USD_EUR),  # today forex ab
-            (date.today(), 'ETH', 'USD', 'unsupported', None),  # today unsup a
-            (date.today(), 'EUR', 'AAA', 'unsupported', None),  # today unsup b
-            (date.today(), 'BBB', 'CCC', 'unsupported', None),  # today unsup ab
-            (date.today(), 'BTC', 'AAA', 'unsupported', None),  # today BTC a unsup b
-            (date.today()+timedelta(days=2), 'BTC', 'BTC', 'supported', None),  # future BTC ab
-            (date.today()+timedelta(days=2), 'BTC', 'EUR', 'supported', None),  # future BTC a
-            (date.today()+timedelta(days=2), 'USD', 'BTC', 'supported', None),  # future BTC b
-            (date.today()+timedelta(days=2), 'USD', 'EUR', 'supported', None),  # future forex ab
-            (date.today()+timedelta(days=2), 'EUR', 'USD', 'supported', None),  # future forex ab
-            (date.today()+timedelta(days=2), 'ETH', 'USD', 'unsupported', None),  # future unsup a
-            (date.today()+timedelta(days=2), 'EUR', 'AAA', 'unsupported', None),  # future unsup b
-            (date.today()+timedelta(days=2), 'BTC', 'AAA', 'unsupported', None),  # future BTC a unsup b
-            (date.today()+timedelta(days=2), 'BBB', 'CCC', 'unsupported', None),  # future unsup ab
-            (date(2021, 8, 28), 'USD', 'EUR', 'holiday', None),  # future BTC ab
-            (date(2021, 8, 29), 'BTC', 'EUR', 'holiday', None),  # future BTC a
+            (date_26_8, 'BTC', 'BTC', 'supported', 1),  # past BTC ab
+            (date_26_8, 'BTC', 'EUR', 'supported', 39848.2899),  # past BTC a
+            (date_26_8, 'USD', 'BTC', 'supported', 2.1347992e-05),  # past BTC b
+            (date_26_8, 'USD', 'EUR', 'supported', 0.84983428),  # past forex ab
+            (date_26_8, 'EUR', 'USD', 'supported', 1.1767),  # past forex ab
+            (date_26_8, 'ETH', 'USD', 'unsupported', None),  # past unsup a
+            (date_26_8, 'EUR', 'AAA', 'unsupported', None),  # past unsup b
+            (date_26_8, 'BTC', 'AAA', 'unsupported', None),  # past BTC + unsup
+            (date_26_8, 'BBB', 'CCC', 'unsupported', None),  # past unsup ab
+            (date_today, 'BTC', 'EUR', 'supported', btc_eur),  # today BTC a
+            (date_today, 'USD', 'BTC', 'supported', usd_btc),  # today BTC b
+            (date_today, 'USD', 'EUR', 'supported', usd_eur),  # today forex ab
+            (date_today, 'ETH', 'USD', 'unsupported', None),  # today unsup a
+            (date_today, 'EUR', 'AAA', 'unsupported', None),  # today unsup b
+            (date_today, 'BBB', 'CCC', 'unsupported', None),  # today unsup ab
+            (date_today, 'BTC', 'AAA', 'unsupported', None),  # today BTC + unsup
+            (date_future, 'BTC', 'BTC', 'supported', None),  # future BTC ab
+            (date_future, 'BTC', 'EUR', 'supported', None),  # future BTC a
+            (date_future, 'USD', 'BTC', 'supported', None),  # future BTC b
+            (date_future, 'USD', 'EUR', 'supported', None),  # future forex ab
+            (date_future, 'EUR', 'USD', 'supported', None),  # future forex ab
+            (date_future, 'ETH', 'USD', 'unsupported', None),  # future unsup a
+            (date_future, 'EUR', 'AAA', 'unsupported', None),  # future unsup b
+            (date_future, 'BTC', 'AAA', 'unsupported', None),  # fut BTC a unsup b
+            (date_future, 'BBB', 'CCC', 'unsupported', None),  # fut unsup ab
+            (date_holiday1, 'USD', 'EUR', 'holiday', None),  # future BTC ab
+            (date_holiday2, 'BTC', 'EUR', 'holiday', None),  # future BTC a
         ]
 
     def test_1_valid_cases(self):
+        """ Retrieving valid past exchange rates from service """
+
         msg = ""
         for point in self.my_test_points:
             given_date = point[0]
@@ -64,11 +75,14 @@ class Test_get_exchange_rate(unittest.TestCase):
                 to_curr = point[2]
                 result = get_exchange_rate(given_date, from_curr, to_curr)
                 check = point[4]
-                msg += f"\nExchange rate {from_curr}/{to_curr} on {given_date.isoformat()}={str(result)} vs. {str(check)}"
+                msg += f"\nExchange rate {from_curr}/{to_curr} on"\
+                    "{given_date.isoformat()}={str(result)} vs. {str(check)}"
                 self.assertAlmostEqual(result, check, places=4)
         # print(msg)
 
     def test_2_today_rates(self):
+        """ Retrieving current exchange rates from service """
+
         msg = ""
         for point in self.my_test_points:
             given_date = point[0]
@@ -78,13 +92,17 @@ class Test_get_exchange_rate(unittest.TestCase):
                 to_curr = point[2]
                 result = get_exchange_rate(given_date, from_curr, to_curr)
                 check = point[4]
-                msg += f"\nExchange rate {from_curr}/{to_curr} on {given_date.isoformat()}={str(result)}"
-        # print(msg)
+                msg += f"\nExchange rate {from_curr}/{to_curr} "\
+                    "on {given_date.isoformat()}={str(result)}"
+                self.assertAlmostEqual(result, check, msg=f"Failed at sample: {point}", places=4)
+        # print(msg) --> replace with logging
 
     def test_3_future_dates(self):
+        """ Retrieving future exchange rates from service """
+
         for point in self.my_test_points:
             given_date = point[0]
-            case = point[3]
+            # not used: case = point[3]
             if given_date > date.today():
                 from_curr = point[1]
                 to_curr = point[2]
@@ -92,6 +110,8 @@ class Test_get_exchange_rate(unittest.TestCase):
                 self.assertIsNone(result, "Future rates should return None")
 
     def test_4_unsupported_cases(self):
+        """ Retrieving unsupported exchange rates from service """
+
         for point in self.my_test_points:
             given_date = point[0]
             case = point[3]
@@ -102,6 +122,8 @@ class Test_get_exchange_rate(unittest.TestCase):
                 self.assertIsNone(result, "Unsupported rates should return None")
 
     def test_5_holiday(self):
+        """ Retrieving from service exchange rates on a holiday"""
+
         for point in self.my_test_points:
             given_date = point[0]
             case = point[3]

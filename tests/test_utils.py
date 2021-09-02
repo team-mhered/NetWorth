@@ -8,10 +8,12 @@ import unittest
 import logging
 
 from datetime import date
-from src.utils import Portfolio, plot_piechart
+from src.utils import Portfolio
 
 
 class TestPortfolio(unittest.TestCase):
+
+    """ Class to test basic Portfolio methods """
 
     def setUp(self):
         """ Create a fixture of a basic portfolio with some items """
@@ -57,7 +59,7 @@ class TestPortfolio(unittest.TestCase):
                 'name': 'Fondo NARANJA 50/40',
                 'description': 'Investment fund in ING Direct'
             },
-            {        # plot_piechart(piechart)
+            {
                 'category': 'asset',
                 'subcategory': 'stock',
                 'currency': 'USD',
@@ -133,9 +135,13 @@ class TestPortfolio(unittest.TestCase):
         self.my_portfolio = my_portfolio
 
     def test_create(self):
+        """ Test 4 items created inside the Portfolio"""
+
         self.assertEqual(len(self.my_portfolio.item_list), 4)
 
     def test_balance(self):
+        """ Test that Portfolio balance is well computed"""
+
         for i in [14]:  # , 17, 19, 21]:
             dat = date(2021, 8, i)
             balance = self.my_portfolio.get_portfolio_balance(given_date=dat)
@@ -144,25 +150,14 @@ class TestPortfolio(unittest.TestCase):
             self.assertAlmostEqual(balance, 163860.222, places=4)
 
     def test_piechart(self):
+        """ Test that Portfolio piechart is well computed"""
+
         for i in [14]:  # , 17, 19, 21]:
             dat = date(2021, 8, i)
             piechart = self.my_portfolio.get_portfolio_piechart(given_date=dat)
             logging.info("Piechart of 'my_portfolio' in %s on %s:\n %s",
                          self.my_portfolio.currency, dat.isoformat(), str(piechart))
             self.assertAlmostEqual(piechart['fund'], 65.8878, places=4)
-            # plot_piechart(piechart)
 
     def tearDown(self):
         pass
-
-
-"""
-def main():
-
-if __name__ == "__main__":
-    # test.py ran directly
-    main()
-else:
-    # test.py was imported
-    pass
-"""
