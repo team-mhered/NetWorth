@@ -51,12 +51,12 @@ def get_exchange_rate(given_date: date, from_currency: str, to_currency: str):
                  for curr in [from_currency, to_currency]):
             # all currencies are forex
             # if not bool(c): # initialize only if needed
-            init_forex = CurrencyRates()
+            forex_handler = CurrencyRates()
             if given_date == today:
-                rate = init_forex.get_rate(from_currency, to_currency)
+                rate = forex_handler.get_rate(from_currency, to_currency)
             else:
-                rate = init_forex.get_rate(from_currency, to_currency,
-                                           given_date)
+                rate = forex_handler.get_rate(from_currency, to_currency,
+                                              given_date)
         else:
             # at least one of the rates is BTC
             # if both rates are BTC -> return 1
@@ -65,21 +65,21 @@ def get_exchange_rate(given_date: date, from_currency: str, to_currency: str):
             else:
                 # one of the rates is BTC
                 # if not bool(b): # initialize only if needed
-                init_crypto = BtcConverter()  # force_decimal=True for decimal rate
+                crypto_handler = BtcConverter()  # force_decimal=True for decimal rate
                 if from_currency == 'BTC':
                     if given_date == today:
-                        rate = init_crypto.get_latest_price(to_currency)
+                        rate = crypto_handler.get_latest_price(to_currency)
                     else:
                         # given_date < today
-                        rate = init_crypto.get_previous_price(to_currency,
-                                                              given_date)
+                        rate = crypto_handler.get_previous_price(to_currency,
+                                                                 given_date)
                 elif to_currency == 'BTC':
                     if given_date == today:
-                        rate = 1/init_crypto.get_latest_price(from_currency)
+                        rate = 1/crypto_handler.get_latest_price(from_currency)
                     else:
                         # given_date < today
-                        rate = 1/init_crypto.get_previous_price(from_currency,
-                                                                given_date)
+                        rate = 1/crypto_handler.get_previous_price(from_currency,
+                                                                   given_date)
                 else:
                     logging.warning("get_exchange_rate failed unexpectedly")
     return rate
@@ -175,7 +175,7 @@ class Portfolio:
         return self.currency
 
     def display(self):
-        """ Display Portfolio(text)"""
+        """ Display Portfolio as text"""
 
         msgs = []
         msgs.append('----------')
@@ -214,6 +214,105 @@ class Item:
         self.portfolio = portfolio  # initialize Item in portfolio
         self.history = []  # creates a new empty list of HistoryPt
 
+    def purchase(self, when: date, units_purchased: float,
+                 unit_price: float, fees: float):
+        """ Purchase units of an Item"""
+
+        # 1) input validation
+        # Given transaction inputs :
+        # date, units_purchased, unit_price, fees paid
+
+        valid_input = True
+
+        # When date is valid date
+        if not isinstance(when, date) or when <= date.today():
+            success = False
+            logging.warning("purchase fails due to invalid date %s",
+                            when.isoformat())
+
+        # And unit_price, fees are floats
+        if isinstance(unit_price, float) and isinstance(fees, float):
+            pass
+        else:
+            valid_input = False
+            logging.warning("purchase fails because units_price or fees are"
+                            " not of type float as expected")
+
+        if self.subcategory in ['account', 'fund']:
+            # And for assets of subcategory account, fund : units_purchased is always 1
+            if units_purchased != 1:
+                valid_input = False
+                logging.warning(
+                    "purchase fails due to units_purchased != 1"
+                    " for %s item: %s ('%s')",
+                    self.subcategory, str(self.unique_id), self.name)
+
+        elif self.subcategory == 'stock':
+            # And for assets of subcategory stock:
+            # units_ purchased is an integer
+            if not isinstance(units_purchased, int):
+                valid_input = False
+                logging.warning(
+                    "purchase fails because units_purchased is not of "
+                    "type int as expected for %s items : %s ('%s')",
+                    self.subcategory, str(self.unique_id), self.name)
+
+        elif self.subcategory == 'real state':
+            # And for assets of subcategory real_state:
+            # units_ purchased is a float in range [0-1]
+            # (representing % of ownership)
+            if isinstance(units_purchased, float):
+                if units_purchased < 0 or units_purchased > 1:
+                    valid_input = False
+                    logging.warning(
+                        "purchase fails because units_purchased out of "
+                        "expected range [0, 1] for %s items : %s ('%s')",
+                        self.subcategory, str(self.unique_id), self.name)
+            else:
+                valid_input = False
+                logging.warning(
+                    "purchase fails because units_purchased is not of "
+                    "type float as expected for %s items : %s ('%s')",
+                    self.subcategory, str(self.unique_id), self.name)
+        else:
+            valid_input = False
+            logging.warning(
+                "purchase fails for Item"
+                " of unsupported subcategory %s: %s ('%s')",
+                self.subcategory, str(self.unique_id), self.name)
+
+        if valid_input:
+            # 2) get asset status prior to purchase
+            prior_hist_pt = self.get_hist_pt_by_date(self, when)
+            if prior_hist_pt is None:
+                cost = 0
+                units = 0
+                value = 0
+            else:
+                cost = prior_hist_pt.cost_of_purchase
+                units = prior_hist_pt.units_owned
+                value = prior_hist_pt.value_of_asset
+
+            # 3) compute asset status post purchase
+
+            # in what currency?
+            cost += (units_purchased * unit_price + fees)
+            units += units_purchased
+            value = units * unit_price
+
+            # date, amount_invested, fees paid, new_value
+            # cost + = amount invested(unit_price) + fees
+            # value = new value(after investment)
+
+            # 4) call update_history method to save new hist_pt
+            self.update_history(when=when, units_owned=units,
+                                cost_of_purchase=cost, value_of_asset=value)
+            sucess = True
+        else:
+            success = valid_input
+
+        return success
+
     def update_history(self, when: date, units_owned: float,
                        cost_of_purchase: float, value_of_asset: float):
         """ Add to Item a HistoryPoint: historic valuation to an Item"""
@@ -224,44 +323,79 @@ class Item:
         self.history.append(hist_pt)
         hist_pt.item = self  # to access properties of parent item
 
-    def get_item_balance(self, currency: str, given_date: date):
-        """ Get Item balance in a given currency and on a given date """
+    def get_hist_pt_by_date(self, given_date: date,
+                            force_exact_match: bool = False):
+        """
+           Get HistoryPoint in item_list by date
+           By default it finds the HistoryPoint that is earlier and closest
+           to the given date.
+           force_exact_match flag = True forces an exact match
+           returns None if not found.
+           """
 
         if bool(self.history):
             tmp_list = [(hist_pt.when,
-                         hist_pt.units_owned * hist_pt.value_of_asset)
+                         hist_pt.unique_id)
                         for hist_pt in self.history]
-
             logging.debug("tmp list %s", str(tmp_list))
+
             sorted_by_date = sorted(tmp_list, key=lambda tup: tup[0])
-
             logging.debug("sorted list %s", str(sorted_by_date))
+
             sorted_dates = [elem[0] for elem in sorted_by_date]
-
             logging.debug("sorted_dates %s", sorted_dates)
-            index_closest_match = bisect.bisect(sorted_dates, given_date)
 
-            closest_match = sorted_by_date[index_closest_match-1]
-            logging.debug("i: %s tuple: %s",
-                          str(index_closest_match), str(closest_match))
+            index_closest_match = bisect.bisect(sorted_dates, given_date)-1
 
+            if index_closest_match >= 0:
+                closest_match = sorted_by_date[index_closest_match]
+                logging.debug("i: %s tuple: %s",
+                              str(index_closest_match), str(closest_match))
+                closest_match_date, closest_match_uid = closest_match
+
+                closest_hist_pt = next((hist_pt for hist_pt in self.history if
+                                        hist_pt.unique_id == closest_match_uid
+                                        ), None)
+                if force_exact_match:
+                    if closest_match_date != given_date:
+                        closest_hist_pt = None
+
+            else:
+                logging.warning(
+                    "get_hist_pt_by_date() returns None because"
+                    " no history prior to %s in Item: %s ('%s')",
+                    given_date.isoformat(),
+                    str(self.unique_id), self.name)
+                closest_hist_pt = None
+
+        else:  # empty list
+            logging.warning(
+                "get_hist_pt_by_date() returns None for Item"
+                " with empty History: %s ('%s')",
+                str(self.unique_id), self.name)
+            closest_hist_pt = None
+
+        return closest_hist_pt
+
+    def get_item_balance(self, currency: str, given_date: date):
+        """ Get Item balance in a given currency and on a given date """
+
+        hist_pt = self.get_hist_pt_by_date(given_date)
+
+        if hist_pt is None:
+            return 0, given_date
+        else:
             exchange_rate = get_exchange_rate(given_date,
                                               from_currency=self.currency,
                                               to_currency=currency)
-            closest_date = closest_match[0]
-            closest_balance = closest_match[1] * exchange_rate
-        else:  # empty list
-            logging.warning(
-                "get_item_balance() returns 0 for Item"
-                " with empty History: %s ('%s')",
-                str(self.unique_id), self.name)
-            closest_date = given_date
-            closest_balance = 0
+            closest_balance = (exchange_rate * hist_pt.units_owned
+                               * hist_pt.value_of_asset)
+            closest_date = hist_pt.when
 
         return closest_balance, closest_date
 
     def display(self):
-        """ Display Item (text)"""
+        """ Display Item as text"""
 
         msgs = []
         msgs.append('\n  ITEM')
@@ -295,6 +429,7 @@ class HistoryPoint:
 
     def __init__(self, when: date, units_owned: float,
                  cost_of_purchase: float, value_of_asset: float):
+        self.unique_id = generate_unique_id()
         self.when = when
         self.units_owned = units_owned
         self.cost_of_purchase = cost_of_purchase
@@ -302,7 +437,7 @@ class HistoryPoint:
         self.item = None  # initializes HistoryPoint as orphan
 
     def display(self):
-        """ Display HistoryPoint(text)"""
+        """ Display HistoryPoint as text"""
 
         msgs = []
         msgs.append("\n        |")
@@ -322,77 +457,8 @@ class HistoryPoint:
 
 
 def main():
-    """ Test creating a portfolio with a couple of assets """
-
-    # setup logging service
-    # ::ENHANCEMENT:: should move this config info to an .env file
-    config_file = './networth.log'
-    log_level = logging.DEBUG
-    logging.basicConfig(filename=config_file, filemode='w',
-                        format='%(asctime)s::%(levelname)s::%(message)s',
-                        datefmt='%Y.%m.%d %I:%M:%S%p', level=log_level)
-
-    logging.info('\n-------RUN STARTS-------')
-    logging.info('Create a Portfolio')
-    portfolio1 = Portfolio(name="My First Portfolio", currency="USD",
-                           description="Test portfolio")
-    logging.debug("Print 'portfolio1' with empty list of items:\n %s",
-                  portfolio1.display())
-
-    logging.info("Add 'fund1' Item")
-
-    fund1 = portfolio1.add_item(category='asset', subcategory='fund',
-                                currency='EUR', name='Fondo NARANJA 50/40',
-                                description='Investment fund in ING Direct')
-
-    logging.debug("Print 'fund1' without history:\n\n %s", fund1.display())
-
-    logging.info("Update History of 'fund1' Item")
-
-    fund1.update_history(when=date(2021, 8, 16),
-                         units_owned=1, cost_of_purchase=100000,
-                         value_of_asset=107963.89)
-    logging.debug("Print 'fund1' with 1 history point:\n\n %s",
-                  fund1.display())
-
-    logging.debug("Print 'portfolio1' with item 'fund1':\n %s",
-                  portfolio1.display())
-
-    logging.info("Add 'crypto1' Item")
-
-    crypto1 = portfolio1.add_item(category='asset', subcategory='account',
-                                  currency='BTC', name='Bitcoin',
-                                  description='Bitcoin in Revolut')
-
-    logging.debug("Print 'crypto1' without history:\n\n %s",
-                  crypto1.display())
-
-    logging.info("Update History of 'crypto1' Item")
-
-    crypto1.update_history(when=date(2021, 5, 12),
-                           units_owned=1.1, cost_of_purchase=50083.18,
-                           value_of_asset=45131.46)
-
-    crypto1.update_history(when=date(2021, 6, 1),
-                           units_owned=1.4, cost_of_purchase=59407.83,
-                           value_of_asset=42672.53)
-
-    crypto1.update_history(when=date(2021, 8, 16),
-                           units_owned=1.4, cost_of_purchase=59407.83,
-                           value_of_asset=55091.67)
-
-    crypto1.update_history(when=date(2021, 8, 21),
-                           units_owned=1.4, cost_of_purchase=59407.83,
-                           value_of_asset=58584.21)
-
-    logging.debug("Print 'crypto1' with 3 history points:\n\n %s",
-                  crypto1.display())
-
-    print("Print 'portfolio1' with 2 items with history:\n %s",
-          portfolio1.display())
-
-    logging.info('Success')
-    logging.info('\n--------RUN ENDS--------\n')
+    """ This runs if utils.py is run as script """
+    pass
 
 
 if __name__ == "__main__":
