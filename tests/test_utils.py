@@ -19,7 +19,7 @@ class TestPortfolio(unittest.TestCase):
         """ Create a fixture of a basic portfolio with some items """
 
         # setup logging service
-        # ::ENHANCEMENT:: should move this config info to an .env or a .cfg file
+        # ::ENHANCEMENT:: move this config info to an .env or a .cfg file
         config_file = './tests/test_utils.log'
         log_level = logging.INFO
         logging.basicConfig(filename=config_file, filemode='w',
@@ -146,7 +146,8 @@ class TestPortfolio(unittest.TestCase):
             dat = date(2021, 8, i)
             balance = self.my_portfolio.get_portfolio_balance(given_date=dat)
             logging.info("Balance of 'my_portfolio' in %s on %s:\n %s",
-                         self.my_portfolio.currency, dat.isoformat(), str(balance))
+                         self.my_portfolio.currency, dat.isoformat(),
+                         str(balance))
             self.assertAlmostEqual(balance, 163860.222, places=4)
 
     def test_piechart(self):
@@ -156,40 +157,39 @@ class TestPortfolio(unittest.TestCase):
             dat = date(2021, 8, i)
             piechart = self.my_portfolio.get_portfolio_piechart(given_date=dat)
             logging.info("Piechart of 'my_portfolio' in %s on %s:\n %s",
-                         self.my_portfolio.currency, dat.isoformat(), str(piechart))
+                         self.my_portfolio.currency,
+                         dat.isoformat(), str(piechart))
             self.assertAlmostEqual(piechart['fund'], 65.8878, places=4)
 
+    def test_purchase(self):
+        """ Test that the purchase method works well"""
 
-def test_purchase(self):
-    """ Test that the purchase method works well"""
+        dat1 = date(2021, 8, 14)
+        balance1 = self.my_portfolio.get_portfolio_balance(given_date=dat1)
+        logging.info("Balance of 'my_portfolio' in %s on %s:\n %s",
+                     self.my_portfolio.currency,
+                     dat1.isoformat(), str(balance1))
 
-    dat1 = date(2021, 8, 14)
-    balance1 = self.my_portfolio.get_portfolio_balance(given_date=dat1)
-    logging.info("Balance of 'my_portfolio' in %s on %s:\n %s",
-                 self.my_portfolio.currency, dat1.isoformat(), str(balance1))
+        # get item by name from item_list
+        bitcoin_account = next(
+            (item for item in self.my_portfolio.item_list
+             if item.name == "Bitcoin"), None)
 
-    # get item by name from item_list
-    bitcoin_account = next(
-        (item for item in self.my_portfolio.item_list
-         if item.name == "Bitcoin"), None)
+        dat2 = date(2021, 8, 15)
+        num_titles = .1
+        u_price = 50000
+        other_charges = .05 * num_titles * u_price
 
-    dat2 = date(2021, 8, 15)
-    num_titles = .1
-    u_price = 50000
-    other_charges = .05 * num_titles * u_price
+        bitcoin_account.purchase(
+            when=dat2,
+            units_purchased=num_titles,
+            unit_price=u_price,
+            fees=other_charges
+        )
 
-    bitcoin_account.purchase(
-        purchase_date=dat2,
-        titles_purchased=num_titles,
-        unit_price=u_price,
-        fees=other_charges
-    )
+        balance2 = self.my_portfolio.get_portfolio_balance(given_date=dat2)
+        logging.info("Balance of 'my_portfolio' in %s on %s:\n %s",
+                     self.my_portfolio.currency, dat2.isoformat(),
+                     str(balance2))
 
-    balance2 = self.my_portfolio.get_portfolio_balance(given_date=dat2)
-    logging.info("Balance of 'my_portfolio' in %s on %s:\n %s",
-                 self.my_portfolio.currency, dat2.isoformat(), str(balance))
-
-    self.assertAlmostEqual(balance2, 200000, places=4)
-
-    def tearDown(self):
-        pass
+        self.assertAlmostEqual(balance2, 200000, places=4)
