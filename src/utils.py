@@ -14,9 +14,9 @@ import matplotlib.pyplot as plt
 # cfr. Classes https://docs.python.org/3/tutorial/classes.html
 # cfr. logging https://docs.python.org/3/howto/logging.html
 
-
+# this is not working. Duplicate definition in get_exchange_rate see Issue #40
 supported_categories = ['asset', 'liability']
-supported_subcategories = ['account', 'fund', 'stock', 'real state']
+supported_subcategories = ['account', 'fund', 'stock', 'real_state']
 supported_currencies = ['USD', 'EUR', 'PLN', 'GBP']
 supported_crypto = ['BTC']
 
@@ -65,7 +65,7 @@ def get_exchange_rate(given_date: date, from_currency: str, to_currency: str):
             else:
                 # one of the rates is BTC
                 # if not bool(b): # initialize only if needed
-                crypto_handler = BtcConverter()  # force_decimal=True for decimal rate
+                crypto_handler = BtcConverter()
                 if from_currency == 'BTC':
                     if given_date == today:
                         rate = crypto_handler.get_latest_price(to_currency)
@@ -78,8 +78,8 @@ def get_exchange_rate(given_date: date, from_currency: str, to_currency: str):
                         rate = 1/crypto_handler.get_latest_price(from_currency)
                     else:
                         # given_date < today
-                        rate = 1/crypto_handler.get_previous_price(from_currency,
-                                                                   given_date)
+                        rate = 1/crypto_handler.get_previous_price(
+                            from_currency, given_date)
                 else:
                     logging.warning("get_exchange_rate failed unexpectedly")
     return rate
@@ -114,8 +114,8 @@ class Portfolio:
                  name: str, description: str):
         """ Add Item to Portfolio """
 
-        logging.info("Adding Item '%s' to Portfolio '%s'...",
-                     name, self.name)
+        logging.debug("Adding Item '%s' to Portfolio '%s'...",
+                      name, self.name)
         reason = ""
         if len(name) < 3:
             reason += f"\nName '{name}' is too short. "
@@ -136,7 +136,7 @@ class Portfolio:
                         description=description, portfolio=self)
         self.item_list.append(new_item)
         if new_item in self.item_list:
-            logging.info("Success")
+            logging.debug("Success")
         return new_item
 
     def get_portfolio_balance(self, given_date: date):
@@ -152,7 +152,10 @@ class Portfolio:
         return portfolio_balance
 
     def get_portfolio_piechart(self, given_date: date):
-        """ Get Portfolio piechart by subcategories on a given date in the Portfolio currency"""
+        """
+        Get Portfolio piechart by subcategories on a given date
+        in the Portfolio currency
+        """
 
         piechart = {'portfolio_balance': 0}
         for item in self.item_list:
@@ -223,67 +226,56 @@ class Item:
         # date, units_purchased, unit_price, fees paid
 
         valid_input = True
+        failed_because = ""
 
         # When date is valid date
-        if not isinstance(when, date) or when <= date.today():
-            success = False
-            logging.warning("purchase fails due to invalid date %s",
-                            when.isoformat())
+        if not isinstance(when, date) or when >= date.today():
+            valid_input = False
+            failed_because += f"invalid date {when.isoformat()}"
 
         # And unit_price, fees are floats
         if isinstance(unit_price, float) and isinstance(fees, float):
             pass
         else:
             valid_input = False
-            logging.warning("purchase fails because units_price or fees are"
-                            " not of type float as expected")
+            failed_because += "units_price or fees are"\
+                " not of type float as expected"
 
         if self.subcategory in ['account', 'fund']:
-            # And for assets of subcategory account, fund : units_purchased is always 1
+            # And for account, fund assets : units_purchased is always 1
             if units_purchased != 1:
                 valid_input = False
-                logging.warning(
-                    "purchase fails due to units_purchased != 1"
-                    " for %s item: %s ('%s')",
-                    self.subcategory, str(self.unique_id), self.name)
+                failed_because += f"units_purchased != 1 "\
+                    "as expected for {self.subcategory} items"
 
         elif self.subcategory == 'stock':
             # And for assets of subcategory stock:
             # units_ purchased is an integer
             if not isinstance(units_purchased, int):
                 valid_input = False
-                logging.warning(
-                    "purchase fails because units_purchased is not of "
-                    "type int as expected for %s items : %s ('%s')",
-                    self.subcategory, str(self.unique_id), self.name)
+                failed_because += "units_purchased is not of "\
+                    "type int as expected for {self.subcategory} items."
 
-        elif self.subcategory == 'real state':
+        elif self.subcategory == 'real_state':
             # And for assets of subcategory real_state:
             # units_ purchased is a float in range [0-1]
             # (representing % of ownership)
             if isinstance(units_purchased, float):
                 if units_purchased < 0 or units_purchased > 1:
                     valid_input = False
-                    logging.warning(
-                        "purchase fails because units_purchased out of "
-                        "expected range [0, 1] for %s items : %s ('%s')",
-                        self.subcategory, str(self.unique_id), self.name)
+                    failed_because += "units_purchased is out of out range"\
+                        " [0, 1] expected for {self.subcategory} items."
             else:
                 valid_input = False
-                logging.warning(
-                    "purchase fails because units_purchased is not of "
-                    "type float as expected for %s items : %s ('%s')",
-                    self.subcategory, str(self.unique_id), self.name)
+                failed_because += "units_purchased is not of "\
+                    "type float as expected for {self.subcategory} items."
         else:
             valid_input = False
-            logging.warning(
-                "purchase fails for Item"
-                " of unsupported subcategory %s: %s ('%s')",
-                self.subcategory, str(self.unique_id), self.name)
+            failed_because += "{self.subcategory} items are not supported."
 
         if valid_input:
             # 2) get asset status prior to purchase
-            prior_hist_pt = self.get_hist_pt_by_date(self, when)
+            prior_hist_pt = self.get_hist_pt_by_date(given_date=when)
             if prior_hist_pt is None:
                 cost = 0
                 units = 0
@@ -307,9 +299,12 @@ class Item:
             # 4) call update_history method to save new hist_pt
             self.update_history(when=when, units_owned=units,
                                 cost_of_purchase=cost, value_of_asset=value)
-            sucess = True
+            success = True
         else:
             success = valid_input
+            logging.warning(
+                "purchase fails for Item %s ('%s') because of %s",
+                str(self.unique_id), self.name, failed_because)
 
         return success
 
@@ -332,6 +327,9 @@ class Item:
            force_exact_match flag = True forces an exact match
            returns None if not found.
            """
+        logging.info(f"HERE called get_hist_pt_by_date with date={given_date}")
+        msg = "HERE with hist_pt:\n"+self.display()
+        logging.info(msg)
 
         if bool(self.history):
             tmp_list = [(hist_pt.when,
@@ -397,31 +395,30 @@ class Item:
     def display(self):
         """ Display Item as text"""
 
-        msgs = []
-        msgs.append('\n  ITEM')
-        msgs.append('\n  ----')
-        msgs.append('\n  Unique ID: ' + str(self.unique_id))
-        msgs.append('\n  Category: ' + self.category)
-        msgs.append('\n  Subcategory: ' + self.subcategory)
-        msgs.append('\n  Currency: ' + self.currency)
-        msgs.append('\n  Name: ' + self.name)
-        msgs.append('\n  Description: ' + self.description)
-        msgs.append('\n  HISTORY')
+        msgs = ""
+        msgs += "\n  ITEM"
+        msgs += "\n  ----"
+        msgs += "\n  Unique ID: " + str(self.unique_id)
+        msgs += "\n  Category: " + self.category
+        msgs += "\n  Subcategory: " + self.subcategory
+        msgs += "\n  Currency: " + self.currency
+        msgs += "\n  Name: " + self.name
+        msgs += "\n  Description: " + self.description
+        msgs += "\n  HISTORY"
         curr_port = self.portfolio.get_portfolio_currency()
         curr_item = self.currency
 
-        msgs.append(f"""
+        msgs += f"""
         _________________________________________________________________
         |     Date      |  Units Owned  |   Cost ({curr_port})  |  Value ({curr_item})  |
-        -----------------------------------------------------------------""")
+        -----------------------------------------------------------------"""
 
         if bool(self.history):
             for hist_pt in self.history:
-                msgs.append(hist_pt.display())
+                msgs += hist_pt.display()
         else:  # empty list
-            msgs.append('\n    None\n')
-        msg = ''.join(msgs)
-        return msg
+            msgs += "\n    None\n"
+        return msgs
 
 
 class HistoryPoint:
