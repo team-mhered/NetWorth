@@ -62,7 +62,7 @@ class TestPortfolio(unittest.TestCase):
             {
                 'category': 'asset',
                 'subcategory': 'stock',
-                'currency': 'USD',
+                'currency': 'EUR',
                 'name': 'Amazon',
                 'description': 'Amazon stock in Revolut'
             },
@@ -75,10 +75,10 @@ class TestPortfolio(unittest.TestCase):
             },
             {
                 'category': 'asset',
-                'subcategory': 'account',
-                'currency': 'ETH',
-                'name': 'Ethereum',
-                'description': 'Ethereum in Revolut'
+                'subcategory': 'real_state',
+                'currency': 'EUR',
+                'name': 'Kcity',
+                'description': 'Apartamento en Kansas City'
             },
             {
                 'category': 'other',
@@ -104,30 +104,33 @@ class TestPortfolio(unittest.TestCase):
                 logging.debug("Printing '%s' :\n\n %s",
                               item_name, item_object.display())
 
-        logging.info("Print 'my_portfolio' with %s items:\n %s",
-                     len(my_portfolio.item_list), my_portfolio.display())
+        logging.debug("Print 'my_portfolio' with %s items:\n %s",
+                      len(my_portfolio.item_list), my_portfolio.display())
 
         for item in my_portfolio.item_list:
             if item.name == "Fondo NARANJA 50/40":
-                item.update_history(when=date(2021, 8, 1),
-                                    units_owned=1, cost_of_purchase=100000,
-                                    value_of_asset=107963.89)
+                item.purchase(
+                    when=date(2021, 2, 1),
+                    units_purchased=1,
+                    unit_price=100000.0,
+                    fees=0.0
+                )
+
+            if item.name == "Amazon":
+                item.purchase(
+                    when=date(2021, 5, 12),
+                    units_purchased=10,
+                    unit_price=5000.0,
+                    fees=0.0
+                )
+
             if item.name == "Bitcoin":
-                item.update_history(when=date(2021, 5, 12),
-                                    units_owned=1, cost_of_purchase=50083.18,
-                                    value_of_asset=1.1)
-
-                item.update_history(when=date(2021, 8, 16),
-                                    units_owned=1, cost_of_purchase=59407.83,
-                                    value_of_asset=1.4)
-
-                item.update_history(when=date(2021, 8, 21),
-                                    units_owned=1, cost_of_purchase=59407.83,
-                                    value_of_asset=1.4)
-
-                item.update_history(when=date(2021, 6, 1),
-                                    units_owned=1, cost_of_purchase=59407.83,
-                                    value_of_asset=1.4)
+                item.purchase(
+                    when=date(2021, 6, 1),
+                    units_purchased=1,
+                    unit_price=1.0,
+                    fees=0.0
+                )
 
         logging.info('Success')
         logging.info('\n--------FIXTURE CREATED---------\n')
@@ -142,24 +145,24 @@ class TestPortfolio(unittest.TestCase):
     def test_balance(self):
         """ Test that Portfolio balance is well computed"""
 
-        for i in [14]:  # , 17, 19, 21]:
-            dat = date(2021, 8, i)
+        for i in [3]:  # , 17, 19, 21]:
+            dat = date(2021, 2, i)
             balance = self.my_portfolio.get_portfolio_balance(given_date=dat)
             logging.info("Balance of 'my_portfolio' in %s on %s:\n %s",
                          self.my_portfolio.currency, dat.isoformat(),
                          str(balance))
-            self.assertAlmostEqual(balance, 163860.222, places=4)
+            self.assertAlmostEqual(balance, 100000.00, places=4)
 
     def test_piechart(self):
         """ Test that Portfolio piechart is well computed"""
 
-        for i in [14]:  # , 17, 19, 21]:
-            dat = date(2021, 8, i)
+        for i in [13]:  # , 17, 19, 21]:
+            dat = date(2021, 5, i)
             piechart = self.my_portfolio.get_portfolio_piechart(given_date=dat)
             logging.info("Piechart of 'my_portfolio' in %s on %s:\n %s",
                          self.my_portfolio.currency,
                          dat.isoformat(), str(piechart))
-            self.assertAlmostEqual(piechart['fund'], 65.8878, places=4)
+            self.assertAlmostEqual(piechart['stock'], 50/150*100, places=4)
 
     def test_purchase(self):
         """ Test that the purchase method works well"""
@@ -171,16 +174,16 @@ class TestPortfolio(unittest.TestCase):
                      dat1.isoformat(), str(balance1))
 
         # get item by name from item_list
-        bitcoin_account = next(
+        amazon_stock = next(
             (item for item in self.my_portfolio.item_list
-             if item.name == "Bitcoin"), None)
+             if item.name == "Amazon"), None)
 
         dat2 = date(2021, 8, 15)
-        num_titles = .1
-        u_price = 50000
+        num_titles = 3.0
+        u_price = 3500.0
         other_charges = .05 * num_titles * u_price
 
-        bitcoin_account.purchase(
+        amazon_stock.purchase(
             when=dat2,
             units_purchased=num_titles,
             unit_price=u_price,
@@ -192,4 +195,4 @@ class TestPortfolio(unittest.TestCase):
                      self.my_portfolio.currency, dat2.isoformat(),
                      str(balance2))
 
-        self.assertAlmostEqual(balance2, 200000, places=4)
+        self.assertAlmostEqual(balance2-balance1, u_price*num_titles, places=4)
