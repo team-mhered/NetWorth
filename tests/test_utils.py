@@ -4,14 +4,15 @@
 
 """ Tests for Portfolio class"""
 
-import unittest
 import logging
+from unittest import TestCase
+# from unittest.mock import patch
 
 from datetime import date
 from src.utils import Portfolio
 
 
-class TestPortfolio(unittest.TestCase):
+class TestPortfolio(TestCase):
 
     """ Class to test basic Portfolio methods """
 
@@ -36,6 +37,7 @@ class TestPortfolio(unittest.TestCase):
             }
         ]
 
+        # this allows creating more than one portfolio (maybe for future tests)
         for i, portfolio_sample in enumerate(portfolio_samples):
             portfolio_name = 'portfolio'+str(i).zfill(2)
             logging.info("Creating Portfolio '%s'...\n%s",
@@ -112,7 +114,19 @@ class TestPortfolio(unittest.TestCase):
                 item.purchase(
                     when=date(2021, 2, 1),
                     units_purchased=1,
-                    unit_price=100000.0,
+                    unit_price=50000.0,
+                    fees=0.0
+                )
+                item.purchase(
+                    when=date(2021, 3, 1),
+                    units_purchased=1,
+                    unit_price=30000.0,
+                    fees=0.0
+                )
+                item.purchase(
+                    when=date(2021, 4, 1),
+                    units_purchased=1,
+                    unit_price=20000.0,
                     fees=0.0
                 )
 
@@ -123,27 +137,26 @@ class TestPortfolio(unittest.TestCase):
                     unit_price=5000.0,
                     fees=0.0
                 )
-
+            """
             if item.name == "Bitcoin":
                 item.purchase(
-                    when=date(2021, 6, 1),
+                    when=date(2021, 8, 1),
                     units_purchased=1,
                     unit_price=1.0,
                     fees=0.0
                 )
-
-        logging.info('Success')
+            """
         logging.info('\n--------FIXTURE CREATED---------\n')
 
         self.my_portfolio = my_portfolio
 
     def test_create(self):
-        """ Test 4 items created inside the Portfolio"""
+        """ Sample Portfolio contains 4 sample Items"""
 
         self.assertEqual(len(self.my_portfolio.item_list), 4)
 
-    def test_balance(self):
-        """ Test that Portfolio balance is well computed"""
+    def test_balance1(self):
+        """ Portfolio balance of 50k€ on 3/2/2021 is computed well"""
 
         for i in [3]:  # , 17, 19, 21]:
             dat = date(2021, 2, i)
@@ -151,10 +164,21 @@ class TestPortfolio(unittest.TestCase):
             logging.info("Balance of 'my_portfolio' in %s on %s:\n %s",
                          self.my_portfolio.currency, dat.isoformat(),
                          str(balance))
-            self.assertAlmostEqual(balance, 100000.00, places=4)
+            self.assertAlmostEqual(balance, 50000.00, places=4)
+
+    def test_balance2(self):
+        """ Portfolio balance of 150k€ on 13/5/2021 is computed well"""
+
+        for i in [13]:  # , 17, 19, 21]:
+            dat = date(2021, 5, i)
+            balance = self.my_portfolio.get_portfolio_balance(given_date=dat)
+            logging.info("Balance of 'my_portfolio' in %s on %s:\n %s",
+                         self.my_portfolio.currency, dat.isoformat(),
+                         str(balance))
+            self.assertAlmostEqual(balance, 150000.00, places=4)
 
     def test_piechart(self):
-        """ Test that Portfolio piechart is well computed"""
+        """ Piechart of 33% stock on 13/5/2021 is computed well"""
 
         for i in [13]:  # , 17, 19, 21]:
             dat = date(2021, 5, i)
@@ -165,7 +189,9 @@ class TestPortfolio(unittest.TestCase):
             self.assertAlmostEqual(piechart['stock'], 50/150*100, places=4)
 
     def test_purchase(self):
-        """ Test that the purchase method works well"""
+        """
+        Balance after purchase of 10.5k€ of Amazon stock is computed well
+        """
 
         dat1 = date(2021, 8, 14)
         balance1 = self.my_portfolio.get_portfolio_balance(given_date=dat1)
@@ -179,7 +205,7 @@ class TestPortfolio(unittest.TestCase):
              if item.name == "Amazon"), None)
 
         dat2 = date(2021, 8, 15)
-        num_titles = 3.0
+        num_titles = 3
         u_price = 3500.0
         other_charges = .05 * num_titles * u_price
 
