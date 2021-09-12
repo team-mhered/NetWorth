@@ -245,16 +245,18 @@ class Item:
             # And for account, fund assets : units_purchased is always 1
             if units_purchased != 1:
                 valid_input = False
-                failed_because += f"units_purchased != 1 "\
-                    "as expected for {self.subcategory} items"
+                failed_because += \
+                    f"# of units != 1 as expected for {self.subcategory}"\
+                    " items"
 
         elif self.subcategory == 'stock':
             # And for assets of subcategory stock:
             # units_ purchased is an integer
             if not isinstance(units_purchased, int):
                 valid_input = False
-                failed_because += "units_purchased is not of "\
-                    "type int as expected for {self.subcategory} items."
+                failed_because += \
+                    f"# of units not an int as expected for {self.subcategory}"\
+                    " items."
 
         elif self.subcategory == 'real_state':
             # And for assets of subcategory real_state:
@@ -284,13 +286,20 @@ class Item:
                 cost = prior_hist_pt.cost_of_purchase
                 units = prior_hist_pt.units_owned
                 value = prior_hist_pt.value_of_asset
-
+            logging.info("PRE-PURCHASE cost: %s units: %s value: %s",
+                         str(cost), str(units), str(value))
             # 3) compute asset status post purchase
 
             # in what currency?
             cost += (units_purchased * unit_price + fees)
-            units += units_purchased
-            value = units * unit_price
+            value += units_purchased * unit_price
+            if self.subcategory in ['stock', 'real_state']:
+                units += units_purchased
+            else:
+                units = 1
+
+            logging.info("POST-PURCHASE cost: %s units: %s value: %s",
+                         str(cost), str(units), str(value))
 
             # date, amount_invested, fees paid, new_value
             # cost + = amount invested(unit_price) + fees
@@ -303,8 +312,8 @@ class Item:
         else:
             success = valid_input
             logging.warning(
-                "purchase fails for Item %s ('%s') because of %s",
-                str(self.unique_id), self.name, failed_because)
+                "Purchase failed for Item '%s' because of %s",
+                self.name, failed_because)
 
         return success
 
@@ -326,10 +335,11 @@ class Item:
            to the given date.
            force_exact_match flag = True forces an exact match
            returns None if not found.
-           """
-        logging.info(f"HERE called get_hist_pt_by_date with date={given_date}")
-        msg = "HERE with hist_pt:\n"+self.display()
-        logging.info(msg)
+        """
+
+        logging.debug("get_hist_pt_by_date() called for date=%s", given_date)
+        msg = "and for the following Item:\n"+self.display()
+        logging.debug(msg)
 
         if bool(self.history):
             tmp_list = [(hist_pt.when,
@@ -382,13 +392,12 @@ class Item:
 
         if hist_pt is None:
             return 0, given_date
-        else:
-            exchange_rate = get_exchange_rate(given_date,
-                                              from_currency=self.currency,
-                                              to_currency=currency)
-            closest_balance = (exchange_rate * hist_pt.units_owned
-                               * hist_pt.value_of_asset)
-            closest_date = hist_pt.when
+
+        exchange_rate = get_exchange_rate(given_date,
+                                          from_currency=self.currency,
+                                          to_currency=currency)
+        closest_balance = (exchange_rate * hist_pt.value_of_asset)
+        closest_date = hist_pt.when
 
         return closest_balance, closest_date
 
@@ -455,7 +464,6 @@ class HistoryPoint:
 
 def main():
     """ This runs if utils.py is run as script """
-    pass
 
 
 if __name__ == "__main__":
