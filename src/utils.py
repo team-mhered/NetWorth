@@ -14,12 +14,6 @@ import matplotlib.pyplot as plt
 # cfr. Classes https://docs.python.org/3/tutorial/classes.html
 # cfr. logging https://docs.python.org/3/howto/logging.html
 
-# this is not working. Duplicate definition in get_exchange_rate see Issue #40
-supported_categories = ['asset', 'liability']
-supported_subcategories = ['account', 'fund', 'stock', 'real_state']
-supported_currencies = ['USD', 'EUR', 'PLN', 'GBP']
-supported_crypto = ['BTC']
-
 
 def generate_unique_id():
     """ Wrapper function that generates unique IDs via an external service """
@@ -27,9 +21,7 @@ def generate_unique_id():
 
 
 def get_exchange_rate(given_date: date, from_currency: str, to_currency: str):
-    """
-    Get exchange rates on a given date for USD EUR PLN GBP BTC
-    """
+    """ Get exchange rates on a given date for USD EUR PLN GBP BTC """
 
     rate = None
     today = date.today()
@@ -38,16 +30,14 @@ def get_exchange_rate(given_date: date, from_currency: str, to_currency: str):
         logging.warning("%s is a date in the future", given_date.isoformat())
     else:
         # check input currencies are valid
-        supported_currencies = ['USD', 'EUR', 'PLN', 'GBP']
-        supported_crypto = ['BTC']
-        supported_all = supported_currencies + supported_crypto
+        supported_all = Portfolio.CURRENCIES + Portfolio.CRYPTO
         curr_not_supported = {curr for curr in
                               [from_currency, to_currency]
                               if curr not in supported_all}
         if bool(curr_not_supported):
             logging.warning('%s currency not supported',
                             str(curr_not_supported))
-        elif all(curr in supported_currencies
+        elif all(curr in Portfolio.CURRENCIES
                  for curr in [from_currency, to_currency]):
             # all currencies are forex
             # if not bool(c): # initialize only if needed
@@ -101,6 +91,11 @@ def plot_piechart(piechart_dict):
 class Portfolio:
     """ Portfolio: List of Items (Assets and Liabilities) """
 
+    CATEGORIES = ('asset', 'liability')
+    SUBCATEGORIES = ('account', 'fund', 'stock', 'real_state')
+    CURRENCIES = ('USD', 'EUR', 'PLN', 'GBP')
+    CRYPTO = ('BTC',)
+
     def __init__(self, name: str, description: str, currency: str):
         """ Portfolio constructor"""
 
@@ -116,25 +111,30 @@ class Portfolio:
 
         logging.debug("Adding Item '%s' to Portfolio '%s'...",
                       name, self.name)
+
+        # input validation
+
         reason = ""
         if len(name) < 3:
             reason += f"\nName '{name}' is too short. "
-        if category.lower() not in supported_categories:
+        if category.lower() not in Portfolio.CATEGORIES:
             reason += f"\nCategory '{category}' not supported. "
-        if subcategory.lower() not in supported_subcategories:
+        if subcategory.lower() not in Portfolio.SUBCATEGORIES:
             reason += f"\nSubcategory '{subcategory}' not supported. "
         if len(reason) > 0:
             logging.warning("Item '%s' not added to Portfolio '%s' due to: %s",
                             name, self.name, reason)
             return None
-        if currency.upper() not in supported_currencies + supported_crypto:
+        if currency.upper() not in Portfolio.CURRENCIES + Portfolio.CRYPTO:
             logging.warning("Auto-update of '%s' currency is not supported.",
                             currency)
 
         new_item = Item(category=category, subcategory=subcategory,
                         currency=currency, name=name,
                         description=description, portfolio=self)
+
         self.item_list.append(new_item)
+
         if new_item in self.item_list:
             logging.debug("Success")
         return new_item
@@ -216,6 +216,7 @@ class Item:
         self.deleted = False
         self.portfolio = portfolio  # initialize Item in portfolio
         self.history = []  # creates a new empty list of HistoryPt
+        self.ledger = []  # creates a new empty ledger for transactions
 
     def purchase(self, when: date, units_purchased: float,
                  unit_price: float, fees: float):
@@ -254,9 +255,8 @@ class Item:
             # units_ purchased is an integer
             if not isinstance(units_purchased, int):
                 valid_input = False
-                failed_because += \
-                    f"# of units not an int as expected for {self.subcategory}"\
-                    " items."
+                failed_because += "# of units not an int as expected "\
+                    f"for {self.subcategory} items."
 
         elif self.subcategory == 'real_state':
             # And for assets of subcategory real_state:
@@ -266,14 +266,14 @@ class Item:
                 if units_purchased < 0 or units_purchased > 1:
                     valid_input = False
                     failed_because += "units_purchased is out of out range"\
-                        " [0, 1] expected for {self.subcategory} items."
+                        f" [0, 1] expected for {self.subcategory} items."
             else:
                 valid_input = False
                 failed_because += "units_purchased is not of "\
-                    "type float as expected for {self.subcategory} items."
+                    f"type float as expected for {self.subcategory} items."
         else:
             valid_input = False
-            failed_because += "{self.subcategory} items are not supported."
+            failed_because += f"{self.subcategory} items are not supported."
 
         if valid_input:
             # 2) get asset status prior to purchase
@@ -308,6 +308,10 @@ class Item:
             # 4) call update_history method to save new hist_pt
             self.update_history(when=when, units_owned=units,
                                 cost_of_purchase=cost, value_of_asset=value)
+            # 4) call update_ledger method to save new purchase transaction
+            self.update_ledger(
+                ('purchase', {'when': when, 'units_purchased': units_purchased,
+                              'unit_price': unit_price, 'fees': fees}))
             success = True
         else:
             success = valid_input
@@ -326,6 +330,15 @@ class Item:
                                value_of_asset=value_of_asset)
         self.history.append(hist_pt)
         hist_pt.item = self  # to access properties of parent item
+
+    def update_ledger(self, purchase_transaction):
+        """ Write a purchase transaction to the Item ledger """
+
+        try:
+            self.ledger.append(purchase_transaction)
+            return True
+        finally:
+            return False
 
     def get_hist_pt_by_date(self, given_date: date,
                             force_exact_match: bool = False):
