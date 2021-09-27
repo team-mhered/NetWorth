@@ -23,6 +23,8 @@ portfolio of assets and a basic dashboard. See details of the proposed roadmap i
 * [uuid](https://docs.python.org/3/library/uuid.html): for unique identification of items
 * [invoke](http://www.pyinvoke.org/): task runner
 * [pylint](https://www.pylint.org/): linter
+* [pyinquirer](https://pypi.org/project/PyInquirer/): minimal text UI
+* [tkinter](https://docs.python.org/3/library/tkinter.html): minimal file dialog GUI
 
 
 For details on other dependencies currently under consideration check the [Dependencies Wiki page](https://github.com/team-mhered/NetWorth/wiki/Dependencies)
