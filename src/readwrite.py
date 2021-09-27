@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 
-from src.utils import Portfolio
-from datetime import date
-
 import logging
+import json
 
-from pprint import pprint
+import tkinter as tk
+from tkinter import filedialog
+from datetime import date, datetime
 
-""" Basic method to read Portfolio from a dict """
+from src.utils import Portfolio
 
 
 def portfolio_from_dict(portfolio_dict):
+    """ Basic method to generate a Portfolio from a dict """
 
     portfolio_object = Portfolio(
         name=portfolio_dict['name'],
@@ -56,6 +57,8 @@ def portfolio_from_dict(portfolio_dict):
 
 
 def dict_from_portfolio(portfolio):
+    """ Basic method to generate a dict from a Portfolio """
+
     portfolio_dict = {}
     portfolio_keys = ['name', 'description', 'currency']
     item_keys = ['category', 'subcategory', 'currency', 'name', 'description']
@@ -95,93 +98,78 @@ def dict_from_portfolio(portfolio):
     return portfolio_dict
 
 
-portfolio_dict = {
-    'name': 'My First Portfolio',
-    'description': 'Test Portfolio',
-    'currency': 'EUR',
-    'item_list': [
-            {
-                'category': 'asset',
-                'subcategory': 'fund',
-                'currency': 'EUR',
-                'name': 'Fondo NARANJA 50/40',
-                'description': 'Investment fund in ING Direct',
-                'ledger': [
-                    ('purchase',
-                        {
-                            'when': date(2021, 2, 1),
-                            'units_purchased': 1,
-                            'unit_price': 50000.0,
-                            'fees': 0.0
-                        }
-                     ),
-                    ('purchase',
-                        {
-                            'when': date(2021, 3, 1),
-                            'units_purchased': 1,
-                            'unit_price': 30000.0,
-                            'fees': 0.0
-                        }
-                     ),
-                    ('purchase',
-                     {
-                         'when': date(2021, 4, 1),
-                         'units_purchased': 1,
-                         'unit_price': 20000.0,
-                         'fees': 0.0
-                     }
-                     ),
-                ],
-            },
-        {
-                'category': 'asset',
-                'subcategory': 'stock',
-                'currency': 'EUR',
-                'name': 'Amazon',
-                'description': 'Amazon stock in Revolut',
-                'ledger': [
-                            ('purchase',
-                             {
-                                 'when': date(2021, 5, 12),
-                                 'units_purchased': 10,
-                                 'unit_price': 5000.0,
-                                 'fees': 0.0,
-                             }
-                             ),
-                ],
-            },
-        {
-                'category': 'asset',
-                'subcategory': 'account',
-                'currency': 'BTC',
-                'name': 'Bitcoin',
-                'description': 'Bitcoin in Revolut',
-            },
-        {
-                'category': 'asset',
-                'subcategory': 'real_state',
-                'currency': 'EUR',
-                'name': 'Kcity',
-                'description': 'Apartamento en Kansas City',
-            },
-        {
-                'category': 'other',
-                'subcategory': 'other',
-                'currency': 'ETH',
-                'name': 'a',
-                'description': 'Testing invalid input',
-            },
-    ],
-}
+def serialize_date(obj):
+    """ Aux function to serialize dates when saving JSON """
 
-portfolio_object = portfolio_from_dict(portfolio_dict)
-
-print(f"Printing 'my_portfolio' with {len(portfolio_object.item_list)}"
-      f" items:\n {portfolio_object.display()}")
-
-dict = dict_from_portfolio(portfolio_object)
-pprint(dict)
-portfolio_object2 = portfolio_from_dict(dict)
+    if isinstance(obj, (datetime, date)):
+        return {'_isoformat': obj.isoformat()}
+    raise TypeError('...')
 
 
-print("Check :", portfolio_object == portfolio_object2)
+def deserialize_date(obj):
+    """ Aux function to deserialize dates when reading JSON """
+
+    _isoformat = obj.get('_isoformat')
+    if _isoformat is not None:
+        return date.fromisoformat(_isoformat)
+    return obj
+
+
+def read_portfolio_from_file(json_file_path=False):
+    """ Read Portfolio from a JSON file """
+
+    if not json_file_path:
+        root = tk.Tk()
+        root.withdraw()
+
+        json_file_path = filedialog.askopenfilename(
+            initialdir='./tests/',
+            title="Select a file",
+            filetypes=(("JSON files", "*.json"), ("all files", "*.*"))
+        )
+
+    if not len(json_file_path):
+        json_file_path = "./tests/fixtures.json"
+
+    with open(json_file_path) as json_file:
+        portfolio_dict = json.load(
+            json_file, object_hook=deserialize_date)
+    portfolio = portfolio_from_dict(portfolio_dict)
+    return portfolio
+
+
+def save_portfolio_to_file(portfolio, json_file_path=None):
+    """ Save Portfolio to a JSON file """
+
+    saved = False
+    portfolio_dict = dict_from_portfolio(portfolio)
+    if json_file_path is None:
+        root = tk.Tk()
+        root.withdraw()
+        json_file_path = filedialog.asksaveasfilename(
+            initialdir='./tests/',
+            title='Choose filename',
+            defaultextension='.json',
+            filetypes=[("JSON files", "*.json")],
+        )
+
+    try:
+        with open(json_file_path, 'w', encoding='utf-8') as json_file:
+            json.dump(portfolio_dict, json_file, default=serialize_date,
+                      ensure_ascii=False, indent=4, sort_keys=True)
+        saved = True
+    except Exception as error_msg:
+        print("Saving failed because: ", error_msg)
+    finally:
+        return saved
+
+
+if __name__ == '__main__':
+
+    from tests.fixtures import sample_portfolio_dict
+
+    portfolio_object = portfolio_from_dict(sample_portfolio_dict)
+
+    print(f"Printing Portfolio with {len(portfolio_object.item_list)}"
+          f" items:\n {portfolio_object.display()}")
+

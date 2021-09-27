@@ -1,4 +1,6 @@
-# tests/runner.py
+#!/usr/bin/env python3
+
+# run_tests.py
 
 import unittest
 

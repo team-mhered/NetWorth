@@ -93,7 +93,7 @@ class Portfolio:
 
     CATEGORIES = ('asset', 'liability')
     SUBCATEGORIES = ('account', 'fund', 'stock', 'real_state')
-    CURRENCIES = ('USD', 'EUR', 'PLN', 'GBP')
+    CURRENCIES = ('EUR', 'USD', 'GBP', 'PLN')
     CRYPTO = ('BTC',)
 
     def __init__(self, name: str, description: str, currency: str):
@@ -104,6 +104,16 @@ class Portfolio:
         self.description = description
         self.currency = currency
         self.item_list = []  # creates a new empty list of Items
+
+    def remove_item(self, removed_item):
+        """ Remove Item from Portfolio """
+
+        if removed_item in self.item_list:
+            self.item_list.remove(removed_item)
+
+        if removed_item not in self.item_list:
+            logging.debug("Item removed")
+            return True
 
     def add_item(self, category: str, subcategory: str, currency: str,
                  name: str, description: str):
@@ -180,23 +190,17 @@ class Portfolio:
     def display(self):
         """ Display Portfolio as text"""
 
-        msgs = []
-        msgs.append('----------')
-        msgs.append('\nPORTFOLIO')
-        msgs.append('\n----------')
-        msgs.append('\nUnique ID: ' + str(self.unique_id))
-        msgs.append('\nName: ' + self.name)
-        msgs.append('\nDescription: ' + self.description)
-        msgs.append('\nCurrency: ' + self.currency)
-        msgs.append('\nITEM LIST:')
-        msgs.append('\n----------')
+        msgs = ""
+        msgs += '\nPORTFOLIO: ' + self.name + ' (' + self.currency+')'
+        msgs += '\nDescription: ' + self.description
+        msgs += '\nID: ' + str(self.unique_id)
+        msgs += '\nITEM LIST:\n'
         if bool(self.item_list):
             for item in self.item_list:
-                msgs.append(item.display())
+                msgs += item.display()
         else:  # empty list
-            msgs.append('\n  None\n')
-        msg = ''.join(msgs)
-        return msg
+            msgs += '\n    None\n'
+        return msgs
 
 
 class Item:
@@ -418,20 +422,15 @@ class Item:
         """ Display Item as text"""
 
         msgs = ""
-        msgs += "\n  ITEM"
-        msgs += "\n  ----"
-        msgs += "\n  Unique ID: " + str(self.unique_id)
-        msgs += "\n  Category: " + self.category
-        msgs += "\n  Subcategory: " + self.subcategory
-        msgs += "\n  Currency: " + self.currency
-        msgs += "\n  Name: " + self.name
-        msgs += "\n  Description: " + self.description
-        msgs += "\n  HISTORY"
+        msgs += "\n    ITEM: " + self.name + " (" + self.currency + ")"
+        msgs += "\n    Category: " + self.category + " / " + self.subcategory
+        msgs += "\n    Description: " + self.description
+        msgs += "\n    Id: " + str(self.unique_id)
+        msgs += "\n    HISTORY:\n"
         curr_port = self.portfolio.get_portfolio_currency()
         curr_item = self.currency
 
         msgs += f"""
-        _________________________________________________________________
         |     Date      |  Units Owned  |   Cost ({curr_port})  |  Value ({curr_item})  |
         -----------------------------------------------------------------"""
 
@@ -439,7 +438,7 @@ class Item:
             for hist_pt in self.history:
                 msgs += hist_pt.display()
         else:  # empty list
-            msgs += "\n    None\n"
+            msgs += "\n        None\n"
         return msgs
 
 
@@ -468,8 +467,6 @@ class HistoryPoint:
             f'{self.cost_of_purchase:.2f}')+'|')  # cost
         msgs.append("{0:^15}".format(
             f'{self.value_of_asset:.2f}')+'|')  # value
-        msgs.append("""
-        -----------------------------------------------------------------""")
 
         msg = ''.join(msgs)
         return msg
