@@ -57,7 +57,7 @@ def portfolio_from_dict(portfolio_dict):
 
 
 def dict_from_portfolio(portfolio):
-    """ Basic methods to generate a dict from a Portfolio """
+    """ Basic method to generate a dict from a Portfolio """
 
     portfolio_dict = {}
     portfolio_keys = ['name', 'description', 'currency']
@@ -172,3 +172,4 @@ if __name__ == '__main__':
 
     print(f"Printing Portfolio with {len(portfolio_object.item_list)}"
           f" items:\n {portfolio_object.display()}")
+

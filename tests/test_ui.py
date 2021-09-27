@@ -27,7 +27,6 @@ class TestUI(unittest.TestCase):
 
         from src.readwrite import read_portfolio_from_file
         my_portfolio = read_portfolio_from_file('./tests/fixtures.json')
-
         logging.info('\n--------FIXTURE CREATED---------\n')
 
         self.my_portfolio = my_portfolio

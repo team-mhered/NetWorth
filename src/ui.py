@@ -388,7 +388,6 @@ def ui_menu(current_portfolio):
             item_as_target.append(user_options[i])
         if required == 'portfolio':
             portfolio_as_target.append(user_options[i])
-
     keep_going = True
 
     while keep_going:
