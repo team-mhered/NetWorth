@@ -6,10 +6,7 @@
 
 import logging
 from unittest import TestCase
-# from unittest.mock import patch
-
 from datetime import date
-from src.utils import Portfolio
 
 
 class TestPortfolio(TestCase):
@@ -29,123 +26,9 @@ class TestPortfolio(TestCase):
 
         logging.info('\n--------CREATING FIXTURE--------\n')
 
-        portfolio_samples = [
-            {
-                'name': 'My First Portfolio',
-                'description': 'Test Portfolio',
-                'currency': 'EUR'
-            }
-        ]
+        from src.readwrite import read_portfolio_from_file
+        my_portfolio = read_portfolio_from_file('./tests/fixtures.json')
 
-        # this allows creating more than one portfolio (maybe for future tests)
-        for i, portfolio_sample in enumerate(portfolio_samples):
-            portfolio_name = 'portfolio'+str(i).zfill(2)
-            logging.info("Creating Portfolio '%s'...\n%s",
-                         portfolio_name, portfolio_sample)
-            portfolio_object = Portfolio(
-                name=portfolio_sample['name'],
-                currency=portfolio_sample['currency'],
-                description=portfolio_sample['description'])
-            if portfolio_object:
-                logging.info('Success')
-
-        # MH this is a ñapa
-        my_portfolio = portfolio_object
-
-        item_samples = [
-
-            {
-                'category': 'asset',
-                'subcategory': 'fund',
-                'currency': 'EUR',
-                'name': 'Fondo NARANJA 50/40',
-                'description': 'Investment fund in ING Direct'
-            },
-            {
-                'category': 'asset',
-                'subcategory': 'stock',
-                'currency': 'EUR',
-                'name': 'Amazon',
-                'description': 'Amazon stock in Revolut'
-            },
-            {
-                'category': 'asset',
-                'subcategory': 'account',
-                'currency': 'BTC',
-                'name': 'Bitcoin',
-                'description': 'Bitcoin in Revolut'
-            },
-            {
-                'category': 'asset',
-                'subcategory': 'real_state',
-                'currency': 'EUR',
-                'name': 'Kcity',
-                'description': 'Apartamento en Kansas City'
-            },
-            {
-                'category': 'other',
-                'subcategory': 'other',
-                'currency': 'ETH',
-                'name': 'a',
-                'description': 'Testing invalid input'
-            }
-        ]
-
-        for i, sample in enumerate(item_samples):
-            item_name = 'sample'+str(i).zfill(2)
-            logging.info("Adding Item '%s' to Portfolio '%s'...\n%s",
-                         item_name, my_portfolio.name, sample)
-            item_object = my_portfolio.add_item(
-                category=sample['category'],
-                subcategory=sample['subcategory'],
-                currency=sample['currency'],
-                name=sample['name'],
-                description=sample['description'])
-            if item_object in my_portfolio.item_list:
-                logging.info('Success')
-                logging.debug("Printing '%s' :\n\n %s",
-                              item_name, item_object.display())
-
-        logging.debug("Print 'my_portfolio' with %s items:\n %s",
-                      len(my_portfolio.item_list), my_portfolio.display())
-
-        for item in my_portfolio.item_list:
-            if item.name == "Fondo NARANJA 50/40":
-                item.purchase(
-                    when=date(2021, 2, 1),
-                    units_purchased=1,
-                    unit_price=50000.0,
-                    fees=0.0
-                )
-                item.purchase(
-                    when=date(2021, 3, 1),
-                    units_purchased=1,
-                    unit_price=30000.0,
-                    fees=0.0
-                )
-                item.purchase(
-                    when=date(2021, 4, 1),
-                    units_purchased=1,
-                    unit_price=20000.0,
-                    fees=0.0
-                )
-
-            if item.name == "Amazon":
-                item.purchase(
-                    when=date(2021, 5, 12),
-                    units_purchased=10,
-                    unit_price=5000.0,
-                    fees=0.0
-                )
-            """
-            if item.name == "Bitcoin":
-                item.purchase(
-                    when=date(2021, 8, 1),
-                    units_purchased=1,
-                    unit_price=1.0,
-                    fees=0.0
-                )
-            """
         logging.info('\n--------FIXTURE CREATED---------\n')
 
         self.my_portfolio = my_portfolio

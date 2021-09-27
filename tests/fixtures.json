@@ -1,0 +1,85 @@
+{
+    "currency": "EUR",
+    "description": "Test Portfolio",
+    "item_list": [
+        {
+            "category": "asset",
+            "currency": "EUR",
+            "description": "Investment fund in ING Direct",
+            "ledger": [
+                [
+                    "purchase",
+                    {
+                        "fees": 0.0,
+                        "unit_price": 50000.0,
+                        "units_purchased": 1,
+                        "when": {
+                            "_isoformat": "2021-02-01"
+                        }
+                    }
+                ],
+                [
+                    "purchase",
+                    {
+                        "fees": 0.0,
+                        "unit_price": 30000.0,
+                        "units_purchased": 1,
+                        "when": {
+                            "_isoformat": "2021-03-01"
+                        }
+                    }
+                ],
+                [
+                    "purchase",
+                    {
+                        "fees": 0.0,
+                        "unit_price": 20000.0,
+                        "units_purchased": 1,
+                        "when": {
+                            "_isoformat": "2021-04-01"
+                        }
+                    }
+                ]
+            ],
+            "name": "Fondo NARANJA 50/40",
+            "subcategory": "fund"
+        },
+        {
+            "category": "asset",
+            "currency": "EUR",
+            "description": "Amazon stock in Revolut",
+            "ledger": [
+                [
+                    "purchase",
+                    {
+                        "fees": 0.0,
+                        "unit_price": 5000.0,
+                        "units_purchased": 10,
+                        "when": {
+                            "_isoformat": "2021-05-12"
+                        }
+                    }
+                ]
+            ],
+            "name": "Amazon",
+            "subcategory": "stock"
+        },
+        {
+            "category": "asset",
+            "currency": "BTC",
+            "description": "Bitcoin in Revolut",
+            "ledger": [],
+            "name": "Bitcoin",
+            "subcategory": "account"
+        },
+        {
+            "category": "asset",
+            "currency": "EUR",
+            "description": "Apartamento en Kansas City",
+            "ledger": [],
+            "name": "Kcity",
+            "subcategory": "real_state"
+        }
+    ],
+    "name": "My First Portfolio"
+}
